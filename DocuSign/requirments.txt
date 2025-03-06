@@ -1,6 +1,6 @@
 fastapi
 uvicorn
 requests
-jwt
+pyjwt
 python-dotenv
 
