@@ -3,6 +3,8 @@ from pydantic import BaseModel
 import requests
 import time
 import jwt
+from dotenv import load_dotenv
+import os
 from typing import Optional
 from datetime import datetime,timedelta
 
@@ -57,8 +59,8 @@ def generateAccessToken():
             "exp": int(time.time()) + 36000,
             "scope": "signature impersonation"
         }
-    with open("../private_key.pem","r") as key_file:
-        PRIVATE_KEY = key_file.read()
+    load_dotenv()
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY")
     encoded_jwt = jwt.encode(data, PRIVATE_KEY, algorithm="RS256")
 
     url = "https://account.docusign.com/oauth/token"
