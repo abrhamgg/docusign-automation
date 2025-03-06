@@ -3,4 +3,5 @@ uvicorn
 requests
 pyjwt
 python-dotenv
+cryptography
 
