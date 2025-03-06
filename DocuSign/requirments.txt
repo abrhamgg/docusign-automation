@@ -1,7 +1,8 @@
 fastapi
-uvicorn
+pydantic
 requests
-pyjwt
 python-dotenv
+pyjwt
 cryptography
+uvicorn
 
