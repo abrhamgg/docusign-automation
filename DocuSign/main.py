@@ -61,6 +61,11 @@ def generateAccessToken():
         }
     load_dotenv()
     PRIVATE_KEY = os.getenv("PRIVATE_KEY")
+       private_key = serialization.load_pem_private_key(
+        PRIVATE_KEY_PEM.encode(),  
+        password=None,  
+        backend=default_backend()
+    )
     encoded_jwt = jwt.encode(data, PRIVATE_KEY, algorithm="RS256")
 
     url = "https://account.docusign.com/oauth/token"
