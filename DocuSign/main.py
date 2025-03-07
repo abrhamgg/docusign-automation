@@ -209,7 +209,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "sellerCarry":["Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407","Text ab63d105-95e1-412c-998a-696be1924b5f"],
             "agentComission":["Text d47a40c5-e305-4bf2-9d0f-23327efc7dc1","Text 71be9608-14e4-4202-9641-6535ec2c0ccf"],
             "purchasePrice":["Text d880ff92-fb45-4b96-87ac-2311bb1ca6ad"],
-            "solarLien":["Text 45c12c3b-51e6-4e0c-903f-28ec6f4c903b","Text 75e6f183-4111-4131-aacb-8c951466ede8"],
+            "solarLien":["Text 45c12c3b-51e6-4e0c-903f-28ec6f4c903b","Text 75e6f183-4111-4131-aacb-8c951466ede8","Text 6d5b60db-784f-4a81-82fb-c483fe6485de"],
             "cashToSeller":["Text 435cd2a7-605d-4e1c-b808-efcfcf576345","Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296"],
             "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"]
             }
