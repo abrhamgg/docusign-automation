@@ -42,6 +42,13 @@ class EnvelopeData(BaseModel):
     Phone: Optional[str]=None
     Broker: Optional[str]=None
     FullName: Optional[str]=None
+    sellerCarry: Optional[str]=None
+    agentComission: Optional[str]=None
+    purchasePrice: Optional[str]=None
+    solarLien: Optional[str]=None
+    cashToSeller: Optional[str]=None
+    Arrears: Optional[str]=None
+
  
 
 
@@ -63,7 +70,6 @@ def generateAccessToken():
         }
     load_dotenv()
     PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-    print("private key",PRIVATE_KEY)
     private_key = serialization.load_pem_private_key(
         PRIVATE_KEY.encode(),  
         password=None,  
@@ -81,7 +87,6 @@ def generateAccessToken():
     response=requests.post(url,data=data)
     if "access_token" in response.json():
         return response.json()["access_token"]
-    print(response.json())
     return None
 
 # Get all the templates from the account
@@ -156,10 +161,10 @@ def validDay(day):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"]
     day_name=days[day_of_week]
     if day_name=="Sunday":
-        date=(date_obj+ timedelta(days=1)).strftime("%Y-%m-%d")
+        date=(date_obj+ timedelta(days=1)).strftime("%B %d %Y")
         return date
     if day_name=="Saturday":
-        date=(date_obj - timedelta(days=1)).strftime("%Y-%m-%d")
+        date=(date_obj - timedelta(days=1)).strftime("%B %d %Y")
         return date
     return date_obj.strftime("%B %d %Y")
 
@@ -200,7 +205,14 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "LegalDescription":["Text d4b9e8b5-9b87-4e07-a618-12bcc3d61ca9"],
             "Debt":["Text 72492c39-9afa-4008-bd82-75ff96a393c1","Text a829029c-a0b5-4f14-a891-1893793b6a1e","Text b0aefea7-7f48-4a17-b882-123b95ffc445"],
             "Phone":["Text d6a58bbd-a825-4b73-acb2-75c78fcf5b44"],
-            "Broker":["Text 5498e23f-a693-4f95-87c7-15668099b82b"]},
+            "Broker":["Text 5498e23f-a693-4f95-87c7-15668099b82b"],
+            "sellerCarry":["Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407","Text ab63d105-95e1-412c-998a-696be1924b5f"],
+            "agentComission":["Text d47a40c5-e305-4bf2-9d0f-23327efc7dc1","Text 71be9608-14e4-4202-9641-6535ec2c0ccf"],
+            "purchasePrice":["Text d880ff92-fb45-4b96-87ac-2311bb1ca6ad"],
+            "solarLien":["Text 45c12c3b-51e6-4e0c-903f-28ec6f4c903b","Text 75e6f183-4111-4131-aacb-8c951466ede8"],
+            "cashToSeller":["Text 435cd2a7-605d-4e1c-b808-efcfcf576345","Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296"],
+            "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"]
+            }
         
     }
 
@@ -226,7 +238,6 @@ def sendEnvelope(envelope_data:EnvelopeData):
     }
     envelope_data.emailSubject=envelope_data.emailSubject+" -OFFER-"
     day=validDay(datetime.now().strftime("%Y-%m-%d"))
-    print("the date is",day)
     day=day.split(" ")
     envelope_data.Day=day[0]+" "+day[1] +","
     envelope_data.Year=day[0][2:]
@@ -241,9 +252,9 @@ def sendEnvelope(envelope_data:EnvelopeData):
     for tab in lableNames.keys():
         for field in lableNames[tab].keys():
             if getattr(envelope_data,field,None)!=None:
-                if tab not in tabs:
-                    tabs[tab]=[]
                 for tabLabel in lableNames[tab][field]:
+                    if tab not in tabs:
+                        tabs[tab]=[]
                     value = getattr(envelope_data, field, "")
                     tabs[tab].append({
                         "tabLabel": tabLabel,
@@ -278,7 +289,6 @@ def sendEnvelope(envelope_data:EnvelopeData):
         ]
     }
     
-    print(envelope)
     
     response = requests.post(f"{baseURL}/{accountID}/envelopes",headers=headers,json=envelope)
     return response.json()
@@ -306,7 +316,7 @@ async def envelopeCompleted(envelope_data:DocusignHook):
 def getTabs():
     accountID = "d793357d-2249-42c3-a21a-e99f0a993bd7"
     access_token = generateAccessToken()
-    template = getTemplate("Cash Offers-(Bonus Offers)", access_token,accountID)
+    template = getTemplate("Texas-Creative Purchase Contract Hudly Title", access_token,accountID)
     documents=requests.get(f"https://na4.docusign.net/restapi/v2.1/accounts/{accountID}/templates/{template['templateId']}/documents",headers={"Authorization": f"Bearer {access_token}"}).json()
     allTabs=[]
     for document in documents["templateDocuments"]:
