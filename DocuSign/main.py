@@ -203,7 +203,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "Year":["Text 2e813665-22d3-4bdc-bcaa-7b505dd567d5"],
             "Apn":["Text 33976459-a290-4365-8bcc-52b6132ea716",],
             "LegalDescription":["Text d4b9e8b5-9b87-4e07-a618-12bcc3d61ca9"],
-            "Debt":["Text 72492c39-9afa-4008-bd82-75ff96a393c1","Text a829029c-a0b5-4f14-a891-1893793b6a1e","Text b0aefea7-7f48-4a17-b882-123b95ffc445"],
+            "Debt":["Text 72492c39-9afa-4008-bd82-75ff96a393c1","Text a829029c-a0b5-4f14-a891-1893793b6a1e","Text b0aefea7-7f48-4a17-b882-123b95ffc445", "Text d4047e56-f49f-4f80-8bb7-ffeafe60f121"],
             "Phone":["Text d6a58bbd-a825-4b73-acb2-75c78fcf5b44"],
             "Broker":["Text 5498e23f-a693-4f95-87c7-15668099b82b"],
             "sellerCarry":["Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407","Text ab63d105-95e1-412c-998a-696be1924b5f"],
@@ -240,7 +240,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
     day=validDay(datetime.now().strftime("%Y-%m-%d"))
     day=day.split(" ")
     envelope_data.Day=day[0]+" "+day[1] +","
-    envelope_data.Year=day[0][2:]
+    envelope_data.Year=day[-1][2:]
     envelope_data.Seller1=envelope_data.Seller1First+" "+envelope_data.Seller1Last
     envelope_data.Seller2=envelope_data.Seller2First+" "+envelope_data.Seller2Last
     envelope_data.FullName=envelope_data.FirstName+" "+envelope_data.LastName
