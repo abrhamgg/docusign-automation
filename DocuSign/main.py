@@ -245,6 +245,20 @@ def sendEnvelope(envelope_data:EnvelopeData):
     envelope_data.Seller2=envelope_data.Seller2First+" "+envelope_data.Seller2Last
     envelope_data.FullName=envelope_data.FirstName+" "+envelope_data.LastName
     tabs={}
+    if envelope_data.Debt and envelope_data.Debt!="":
+        envelope_data.Debt=envelope_data.Debt.split(".")[0][1:]
+    if envelope_data.sellerCarry and envelope_data.sellerCarry!="":
+        envelope_data.sellerCarry=envelope_data.sellerCarry.split(".")[0][1:]
+    if envelope_data.cashToSeller and envelope_data.cashToSeller!="":
+        envelope_data.cashToSeller=envelope_data.cashToSeller.split(".")[0][1:]
+    if envelope_data.solarLien and envelope_data.solarLien!="":
+        envelope_data.solarLien=envelope_data.solarLien.split(".")[0][1:]
+    if envelope_data.purchasePrice and envelope_data.purchasePrice!="":
+        envelope_data.purchasePrice=envelope_data.purchasePrice.split(".")[0][1:]
+    if envelope_data.Arrears and envelope_data.Arrears!="":
+        envelope_data.Arrears=envelope_data.Arrears.split(".")[0][1:]
+    if envelope_data.agentComission and envelope_data.agentComission!="":
+        envelope_data.agentComission=envelope_data.agentComission.split(".")[0][1:]
     lableNames=TexasPurchaseContract
     if envelope_data.templateName=="Cash Offers-(Bonus Offers)":
         lableNames=bonusOffer
