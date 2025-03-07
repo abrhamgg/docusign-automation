@@ -63,6 +63,7 @@ def generateAccessToken():
         }
     load_dotenv()
     PRIVATE_KEY = os.getenv("PRIVATE_KEY")
+    print("private key",PRIVATE_KEY)
     private_key = serialization.load_pem_private_key(
         PRIVATE_KEY.encode(),  
         password=None,  
