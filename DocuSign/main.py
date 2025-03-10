@@ -357,7 +357,7 @@ def add_tag(contactId, tag,accessToken):
     }
     response = requests.post(url, headers=headers, json=body)
     if response.status_code != 200:
-        return response.status_code
+        return response.json()
     return response.json()
 
 zip_codes= set()         
@@ -372,6 +372,15 @@ for index, row in codes.iterrows():
 def addTag(tagData:TagData):
     load_dotenv()
     access_token = os.getenv("ghl_access_token")
+    if tagData.zipCode not in zip_codes:
+        return {"message":"Invalid Zip Code"}
+    response=add_tag(tagData.contactId,tagData.tag,access_token)
+    return response
+
+@app.post("/addTag_sms")
+def addTag(tagData:TagData):
+    load_dotenv()
+    access_token = os.getenv("sms_api_key")
     if tagData.zipCode not in zip_codes:
         return {"message":"Invalid Zip Code"}
     response=add_tag(tagData.contactId,tagData.tag,access_token)
