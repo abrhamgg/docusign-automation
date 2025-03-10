@@ -357,9 +357,9 @@ def add_tag(contactId, tag,accessToken):
     }
     response = requests.post(url, headers=headers, json=body)
     if response.status_code != 200:
-        print(response)
         return response.status_code
     return response.json()
+
 zip_codes= set()         
 codes=pd.read_csv("zip_codes.csv",index_col=False)
 for index, row in codes.iterrows():
@@ -374,6 +374,5 @@ def addTag(tagData:TagData):
     access_token = os.getenv("ghl_access_token")
     if tagData.zipCode not in zip_codes:
         return {"message":"Invalid Zip Code"}
-    # response=add_tag(tagData.contactId,tagData.tag,access_token)
-    # return response
-    return {"message":"Tag added successfully"}
+    response=add_tag(tagData.contactId,tagData.tag,access_token)
+    return response
