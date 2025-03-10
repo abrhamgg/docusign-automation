@@ -9,6 +9,7 @@ from typing import Optional
 from datetime import datetime,timedelta
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+import pandas as pd
 
 app=FastAPI()
 
@@ -57,6 +58,12 @@ class EnvelopeData(BaseModel):
 class DocusignHook(BaseModel):
     event: str
     data: dict
+
+class TagData(BaseModel):
+    contactId: str
+    tag: str
+    zipCode: str
+   
    
 # function that generates an access token using Jwt token thst uses the private key
 def generateAccessToken():
@@ -338,3 +345,35 @@ def getTabs():
         allTabs.append(tabs)
     return allTabs
    
+
+def add_tag(contactId, tag,accessToken):
+    headers = {
+        "accept": "application/json",
+        "Authorization":f"Bearer {accessToken}",
+    }
+    url = f"https://rest.gohighlevel.com/v1/contacts/{contactId}/tags/"
+    body = {
+        "tags":[tag]
+    }
+    response = requests.post(url, headers=headers, json=body)
+    if response.status_code != 200:
+        print(response)
+        return response.status_code
+    return response.json()
+zip_codes= set()         
+codes=pd.read_csv("zip_codes.csv",index_col=False)
+for index, row in codes.iterrows():
+    for code in row:
+        if pd.notna(code):
+            code=str(int(code))
+            zip_codes.add(code) 
+
+@app.post("/addTag")
+def addTag(tagData:TagData):
+    load_dotenv()
+    access_token = os.getenv("ghl_access_token")
+    if tagData.zipCode not in zip_codes:
+        return {"message":"Invalid Zip Code"}
+    # response=add_tag(tagData.contactId,tagData.tag,access_token)
+    # return response
+    return {"message":"Tag added successfully"}
