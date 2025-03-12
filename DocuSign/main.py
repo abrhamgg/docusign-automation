@@ -372,7 +372,10 @@ for index, row in codes.iterrows():
 def addTag(tagData:TagData):
     load_dotenv()
     access_token = os.getenv("ghl_access_token")
-    if tagData.zipCode not in zip_codes:
+    if tagData.zipCode == None or tagData.zipCode=="null":
+        return {"message":"Invalid Zip Code"}
+    zip=str(int(tagData.zipCode))
+    if zip  not in zip_codes:
         return {"message":"Invalid Zip Code"}
     response=add_tag(tagData.contactId,tagData.tag,access_token)
     return response
@@ -381,7 +384,10 @@ def addTag(tagData:TagData):
 def addTag(tagData:TagData):
     load_dotenv()
     access_token = os.getenv("sms_api_key")
-    if tagData.zipCode not in zip_codes:
+    if tagData.zipCode == None or tagData.zipCode=="null":
+        return {"message":"Invalid Zip Code"}
+    zip=str(int(tagData.zipCode))
+    if  zip not in zip_codes:
         return {"message":"Invalid Zip Code"}
     response=add_tag(tagData.contactId,tagData.tag,access_token)
     return response
