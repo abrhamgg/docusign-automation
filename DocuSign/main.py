@@ -51,6 +51,7 @@ class EnvelopeData(BaseModel):
     Arrears: Optional[str]=None
     CompanyName: Optional[str]=None
     CompanyAddress: Optional[str]=None
+    CashToSeller: Optional[str]=None
 
  
 
@@ -194,6 +195,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
+
     template=getTemplate(envelope_data.templateName,access_token,accountID)
     if not template:
         return "Error: Template not found"
@@ -202,12 +204,12 @@ def sendEnvelope(envelope_data:EnvelopeData):
     TexasPurchaseContract={
         "fullNameTabs":{"FullName":["Text ac3aaeb0-0679-4b1c-8810-0c24ef969808","Name bad5d7d1-d668-4d77-b525-f789f28930f9"]},
         "textTabs":{
-            "FullName":["Text ac3aaeb0-0679-4b1c-8810-0c24ef969808","Text 3af59d6f-3c3a-4fd4-a7b8-f3a3cd3ccd51"],
+            "FullName":["Text 3af59d6f-3c3a-4fd4-a7b8-f3a3cd3ccd51"],
             "ClientEmail":["Text db5edea4-60d7-47bb-b690-5898bef99cc5"],
             "propertyAddress":["Text 8d063961-178b-4c61-a81e-d444a6c56978","Text 1a9f762b-0095-41a5-843a-0acc2850450e"],
             "Address":["Text b6d420a3-c43d-4bca-a07d-0924053c26a0"],
-            "Seller1":["Text 2e108362-fc9a-4cab-91dc-578b5169bc58","Text 45d3e6ae-ef41-4cd3-8ce5-060456a856b4","Text 3150fd93-12fe-4675-a697-45c1db7facae","Text 9e729bce-1a7b-46e6-b9b5-e78fcaf41513","Text 9757dbfe-74ad-498a-a41e-4edafd403c8f"],
-            "Seller2":["Text 8a3ef30d-601a-4f71-b108-af4041d67b7b","Text 8b3e05be-85a4-47b0-96ce-c95ed88aab4e","Text eb611128-2a6f-48c4-a4a9-8558b6e5af45"],
+            "Seller1":["Text 2e108362-fc9a-4cab-91dc-578b5169bc58","Text 45d3e6ae-ef41-4cd3-8ce5-060456a856b4","Text 3150fd93-12fe-4675-a697-45c1db7facae","Text 9757dbfe-74ad-498a-a41e-4edafd403c8f"],
+            "Seller2":["Text 8a3ef30d-601a-4f71-b108-af4041d67b7b","Text 8b3e05be-85a4-47b0-96ce-c95ed88aab4e","Text eb611128-2a6f-48c4-a4a9-8558b6e5af45","Text 9e729bce-1a7b-46e6-b9b5-e78fcaf41513"],
             "Day":["Text efd6729e-653d-4dc5-9eb5-6ba2b4afce7c",],
             "Year":["Text 2e813665-22d3-4bdc-bcaa-7b505dd567d5"],
             "Apn":["Text 33976459-a290-4365-8bcc-52b6132ea716",],
@@ -260,6 +262,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "Broker":[],
             "ClientEmail":[],
             "Address":[],
+            "CashToSeller":["Text 26cdeb5f-85f4-4dab-9a5f-4634aabee303",],
             "CompanyName":["Text fa3727e1-7aaa-437d-b4b7-289e139d3535"],
             "CompanyAddress":["Text de5818de-f9bd-4ada-b829-35f3474bdc52",],
         }
@@ -287,6 +290,9 @@ def sendEnvelope(envelope_data:EnvelopeData):
         envelope_data.Arrears=envelope_data.Arrears.split(".")[0][1:]
     if envelope_data.agentComission and envelope_data.agentComission!="":
         envelope_data.agentComission=envelope_data.agentComission.split(".")[0][1:]
+    if envelope_data.CashToSeller and envelope_data.CashToSeller!="":
+        envelope_data.CashToSeller=envelope_data.CashToSeller+" "+"cash to the sellers at COE."
+        
     lableNames=TexasPurchaseContract
     if envelope_data.templateName=="Cash Offers-(Bonus Offers)":
         lableNames=bonusOffer
@@ -306,6 +312,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
                     })
     envelope = {
         "emailSubject": envelope_data.emailSubject,
+        
         "status": "created",
         "compositeTemplates": [
             {
@@ -323,6 +330,8 @@ def sendEnvelope(envelope_data:EnvelopeData):
                                 {
                                     "roleName": "Signer 1", 
                                     "recipientId": "f5d6f049-efc9-4fa1-9611-618063ed473d",
+                                    "name": "Gordon Sran",
+                                    "email": "gordon@palmcapitalventures.com",
                                     "tabs":tabs
                                 }
                             ]
@@ -332,7 +341,6 @@ def sendEnvelope(envelope_data:EnvelopeData):
             }
         ]
     }
-    
     response = requests.post(f"{baseURL}/{accountID}/envelopes",headers=headers,json=envelope)
     return response.json()
 
@@ -359,7 +367,7 @@ async def envelopeCompleted(envelope_data:DocusignHook):
 def getTabs():
     accountID = "d793357d-2249-42c3-a21a-e99f0a993bd7"
     access_token = generateAccessToken()
-    template = getTemplate("Seller Finance Offer", access_token,accountID)
+    template = getTemplate("Texas-Creative Purchase Contract Hudly Title", access_token,accountID)
     documents=requests.get(f"https://na4.docusign.net/restapi/v2.1/accounts/{accountID}/templates/{template['templateId']}/documents",headers={"Authorization": f"Bearer {access_token}"}).json()
     allTabs=[]
     for document in documents["templateDocuments"]:
