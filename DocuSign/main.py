@@ -320,6 +320,8 @@ def sendEnvelope(envelope_data:EnvelopeData):
 
     # if envelope_data.templateName=="Texas-Creative Purchase Contract Hudly Title" making the template title and informations dynamic
     if lableNames==TexasPurchaseContract:
+        if envelope_data.city_name not in companys:
+            return {"message":"Invalid city name"}
         envelope_data.CompanyTitle=companys[envelope_data.city_name][0]
         envelope_data.CompanyAddress=companys[envelope_data.city_name][1]
         envelope_data.CompanyTelephone=companys[envelope_data.city_name][2]
