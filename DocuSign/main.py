@@ -50,9 +50,12 @@ class EnvelopeData(BaseModel):
     cashToSeller: Optional[str]=None
     Arrears: Optional[str]=None
     CompanyName: Optional[str]=None
-    CompanyAddress: Optional[str]=None
     CashToSeller: Optional[str]=None
-
+    CompanyTitle: Optional[str]=None
+    CompanyEmail: Optional[str]=None
+    CompanyAddress: Optional[str]=None
+    CompanyTelephone: Optional[str]=None
+    city_name: Optional[str]=None
  
 
 
@@ -184,6 +187,16 @@ def home():
 
 @app.post("/sendEnvelope")
 def sendEnvelope(envelope_data:EnvelopeData):
+
+    # companys list with repective title, address, telephone, and email address value
+    companys = {
+        "Florida": ["AMZ Title", "8381 N. Gunn Hwy Tampa,FL 33626", "813-200-6130", "neworders@amztitle.com"],
+        "Louisiana": ["True Title", "110 Veterans Blvd. Suite 525, Metairie, LA 70005", "(504) 309-1030", "rlarousse@truetitle.net"],
+        "Midwest": ["Empora Title", "145 E Rich St, Floor 4 Columbus, OH 43215", "(614) 660-5503", "info@emporatitle.com"],
+        "Arizona": ["1st Option Title", "7975 N. Hayden Road, Suite A-200 Scottsdale, AZ 85258", "(480)-795-3491", "carrie@1stoptiontitle.com"],
+        "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"]
+    }
+
     access_token =generateAccessToken()
     if not access_token:
         return "Error: Access token not generated"
@@ -200,7 +213,9 @@ def sendEnvelope(envelope_data:EnvelopeData):
     if not template:
         return "Error: Template not found"
     templateId=template["templateId"]
+    
     envelope_data.FullName=envelope_data.FirstName+" "+envelope_data.LastName
+    # List of template labels
     TexasPurchaseContract={
         "fullNameTabs":{"FullName":["Text ac3aaeb0-0679-4b1c-8810-0c24ef969808","Name bad5d7d1-d668-4d77-b525-f789f28930f9"]},
         "textTabs":{
@@ -222,7 +237,11 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "purchasePrice":["Text d880ff92-fb45-4b96-87ac-2311bb1ca6ad"],
             "solarLien":["Text 45c12c3b-51e6-4e0c-903f-28ec6f4c903b","Text 75e6f183-4111-4131-aacb-8c951466ede8","Text 6d5b60db-784f-4a81-82fb-c483fe6485de"],
             "cashToSeller":["Text 435cd2a7-605d-4e1c-b808-efcfcf576345","Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296"],
-            "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"]
+            "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"],
+            "CompanyTitle":["Text 4d29231e-a530-47c7-a852-9afa11ca6817","Text b618a341-0f01-4e87-abee-39aa2becae06"],
+            "CompanyEmail":["Text bfcdd833-8930-4a77-9a85-cc6ee3000b14"],
+            "CompanyAddress":["Text 2a8fd0c2-723e-4a61-8cdc-40307e7cb447","Text 2a8fd0c2-723e-4a61-8cdc-40307e7cb447"],
+            "CompanyTelephone":["Text 8741379d-5190-4cc5-9121-775f6d814acb"],
             }      
     }
 
@@ -298,6 +317,13 @@ def sendEnvelope(envelope_data:EnvelopeData):
         lableNames=bonusOffer
     elif envelope_data.templateName=="Seller Finance Offer":
         lableNames=sellerFinanceOffer
+
+    # if envelope_data.templateName=="Texas-Creative Purchase Contract Hudly Title" making the template title and informations dynamic
+    if lableNames==TexasPurchaseContract:
+        envelope_data.CompanyTitle=companys[envelope_data.city_name][0]
+        envelope_data.CompanyAddress=companys[envelope_data.city_name][1]
+        envelope_data.CompanyTelephone=companys[envelope_data.city_name][2]
+        envelope_data.CompanyEmail=companys[envelope_data.city_name][3]
 
     for tab in lableNames.keys():
         for field in lableNames[tab].keys():
