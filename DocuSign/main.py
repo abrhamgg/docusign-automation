@@ -240,7 +240,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"],
             "CompanyTitle":["Text 4d29231e-a530-47c7-a852-9afa11ca6817","Text b618a341-0f01-4e87-abee-39aa2becae06"],
             "CompanyEmail":["Text bfcdd833-8930-4a77-9a85-cc6ee3000b14"],
-            "CompanyAddress":["Text 2a8fd0c2-723e-4a61-8cdc-40307e7cb447","Text 2a8fd0c2-723e-4a61-8cdc-40307e7cb447"],
+            "CompanyAddress":["Text 2a8fd0c2-723e-4a61-8cdc-40307e7cb447","Text 5fc5c901-2804-499f-a851-d9ec1547aa37"],
             "CompanyTelephone":["Text 8741379d-5190-4cc5-9121-775f6d814acb"],
             }      
     }
