@@ -271,7 +271,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "propertyAddress":["Text 763eb56b-ac75-460a-a056-7a6e5665d6c3","Text 96b302b1-eac1-4494-b6a7-6e60841fbd45", "Text f4fea6fc-73af-42cb-9dca-a3a89278433b"],
             "FullName":[],
             "Seller1":["Text 96595125-399d-4f15-8a22-9f250217a58c","Text 4e3a6460-bc99-406c-a30e-c9ff5946d97c","Text 2ecb670f-53f1-4c5c-88f3-2d300aaf18df","Text 04c8164c-e4a8-44c9-8551-edd5b50b4757"],
-            "Seller2":["Text 7c6fe0bf-8a2a-4121-90b0-59598bfedbbb","Text 1d6719de-7739-4d80-9d6f-d85a464c0ac9","Text 5c742822-fd1e-4d50-b509-0fd80d98ba27","Text 6a63788b-71ef-4858-bae6-7b96187eabed"],
+            "Seller2":["Text 7c6fe0bf-8a2a-4121-90b0-59598bfedbbb","Text 1d6719de-7739-4d80-9d6f-d85a464c0ac9","Text 8d3274f5-0de3-4182-87b7-f10add7d8cdf"],
             "Day":["Text 806fb25a-9700-44ae-92d3-6858d3543322"],
             "Year":[],
             "Apn":["Text e53e1a35-855e-4562-914f-8414f3516a7d"],
@@ -284,6 +284,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "CashToSeller":["Text 26cdeb5f-85f4-4dab-9a5f-4634aabee303",],
             "CompanyName":["Text fa3727e1-7aaa-437d-b4b7-289e139d3535"],
             "CompanyAddress":["Text de5818de-f9bd-4ada-b829-35f3474bdc52",],
+            "CompanyTitle":["Text c95342ba-0ee8-44e7-b467-05c7371221ab"]
         }
     }
     envelope_data.emailSubject=envelope_data.emailSubject+" -OFFER-"
@@ -319,14 +320,13 @@ def sendEnvelope(envelope_data:EnvelopeData):
         lableNames=sellerFinanceOffer
 
     # if envelope_data.templateName=="Texas-Creative Purchase Contract Hudly Title" making the template title and informations dynamic
-    if lableNames==TexasPurchaseContract:
+    if lableNames==TexasPurchaseContract or lableNames==sellerFinanceOffer:
         if envelope_data.city_name not in companys:
             return {"message":"Invalid city name"}
         envelope_data.CompanyTitle=companys[envelope_data.city_name][0]
         envelope_data.CompanyAddress=companys[envelope_data.city_name][1]
         envelope_data.CompanyTelephone=companys[envelope_data.city_name][2]
         envelope_data.CompanyEmail=companys[envelope_data.city_name][3]
-
     for tab in lableNames.keys():
         for field in lableNames[tab].keys():
             if getattr(envelope_data,field,None)!=None:
@@ -395,7 +395,7 @@ async def envelopeCompleted(envelope_data:DocusignHook):
 def getTabs():
     accountID = "d793357d-2249-42c3-a21a-e99f0a993bd7"
     access_token = generateAccessToken()
-    template = getTemplate("Texas-Creative Purchase Contract Hudly Title", access_token,accountID)
+    template = getTemplate("Seller Finance Offer", access_token,accountID)
     documents=requests.get(f"https://na4.docusign.net/restapi/v2.1/accounts/{accountID}/templates/{template['templateId']}/documents",headers={"Authorization": f"Bearer {access_token}"}).json()
     allTabs=[]
     for document in documents["templateDocuments"]:
