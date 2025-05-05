@@ -194,7 +194,8 @@ def sendEnvelope(envelope_data:EnvelopeData):
         "Louisiana": ["True Title", "110 Veterans Blvd. Suite 525, Metairie, LA 70005", "(504) 309-1030", "rlarousse@truetitle.net"],
         "Midwest": ["Empora Title", "145 E Rich St, Floor 4 Columbus, OH 43215", "(614) 660-5503", "info@emporatitle.com"],
         "Arizona": ["1st Option Title", "7975 N. Hayden Road, Suite A-200 Scottsdale, AZ 85258", "(480)-795-3491", "carrie@1stoptiontitle.com"],
-        "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"]
+        "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
+        "Georgia": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ]
     }
 
     access_token =generateAccessToken()
