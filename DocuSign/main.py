@@ -300,17 +300,17 @@ def sendEnvelope(envelope_data:EnvelopeData):
     if envelope_data.Debt and envelope_data.Debt!="":
         envelope_data.Debt=envelope_data.Debt.split(".")[0][1:]
     if envelope_data.sellerCarry and envelope_data.sellerCarry!="":
-        envelope_data.sellerCarry=envelope_data.sellerCarry.split(".")[0][1:]
+        envelope_data.sellerCarry=f"•$ {envelope_data.sellerCarry.split(".")[0][1:]} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month."
     if envelope_data.cashToSeller and envelope_data.cashToSeller!="":
-        envelope_data.cashToSeller=envelope_data.cashToSeller.split(".")[0][1:]
+        envelope_data.cashToSeller=f"•$ {envelope_data.cashToSeller.split(".")[0][1:]} Cash to the sellers at COE."
     if envelope_data.solarLien and envelope_data.solarLien!="":
-        envelope_data.solarLien=envelope_data.solarLien.split(".")[0][1:]
+        envelope_data.solarLien=f"•$ {envelope_data.solarLien.split(".")[0][1:]}  Solar lien to be taken over subject to the existing loan."
     if envelope_data.purchasePrice and envelope_data.purchasePrice!="":
         envelope_data.purchasePrice=envelope_data.purchasePrice.split(".")[0][1:]
     if envelope_data.Arrears and envelope_data.Arrears!="":
-        envelope_data.Arrears=envelope_data.Arrears.split(".")[0][1:]
+        envelope_data.Arrears=f"•$ {envelope_data.Arrears.split(".")[0][1:]} In seller arrears to be paid by buyer at COE."
     if envelope_data.agentComission and envelope_data.agentComission!="":
-        envelope_data.agentComission=envelope_data.agentComission.split(".")[0][1:]
+        envelope_data.agentComission=f"•$ {envelope_data.agentComission.split(".")[0][1:]}  Listing agent commission paid by buyer at COE."
     if envelope_data.CashToSeller and envelope_data.CashToSeller!="":
         envelope_data.CashToSeller=envelope_data.CashToSeller+" "+"cash to the sellers at COE."
         
