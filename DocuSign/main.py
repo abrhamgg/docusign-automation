@@ -300,17 +300,17 @@ def sendEnvelope(envelope_data:EnvelopeData):
     if envelope_data.Debt and envelope_data.Debt!="":
         envelope_data.Debt=envelope_data.Debt.split(".")[0][1:]
     if envelope_data.sellerCarry and envelope_data.sellerCarry!="":
-        envelope_data.sellerCarry=f'•$ {envelope_data.sellerCarry.split(".")[0][1:]} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
+        envelope_data.sellerCarry=envelope_data.sellerCarry.split(".")[0][1:]
     if envelope_data.cashToSeller and envelope_data.cashToSeller!="":
-        envelope_data.cashToSeller=f'•$ {envelope_data.cashToSeller.split(".")[0][1:]} Cash to the sellers at COE.'
+        envelope_data.cashToSeller=envelope_data.cashToSeller.split(".")[0][1:]
     if envelope_data.solarLien and envelope_data.solarLien!="":
-        envelope_data.solarLien=f'•$ {envelope_data.solarLien.split(".")[0][1:]}  Solar lien to be taken over subject to the existing loan.'
+        envelope_data.solarLien=envelope_data.solarLien.split(".")[0][1:]
     if envelope_data.purchasePrice and envelope_data.purchasePrice!="":
         envelope_data.purchasePrice=envelope_data.purchasePrice.split(".")[0][1:]
     if envelope_data.Arrears and envelope_data.Arrears!="":
-        envelope_data.Arrears=f'•$ {envelope_data.Arrears.split(".")[0][1:]} In seller arrears to be paid by buyer at COE.'
+        envelope_data.Arrears=envelope_data.Arrears.split(".")[0][1:]
     if envelope_data.agentComission and envelope_data.agentComission!="":
-        envelope_data.agentComission=f'•$ {envelope_data.agentComission.split(".")[0][1:]}  Listing agent commission paid by buyer at COE.'
+        envelope_data.agentComission=envelope_data.agentComission.split(".")[0][1:]
     if envelope_data.CashToSeller and envelope_data.CashToSeller!="":
         envelope_data.CashToSeller=envelope_data.CashToSeller+" "+"cash to the sellers at COE."
         
@@ -335,10 +335,25 @@ def sendEnvelope(envelope_data:EnvelopeData):
                     if tab not in tabs:
                         tabs[tab]=[]
                     value = getattr(envelope_data, field, "")
+                    if tabLabel=="Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296" and field=="cashToSeller":
+                        value = f'•$ {envelope_data.cashToSeller} Cash to the sellers at COE.'
+                    elif tabLabel == "Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407" and field == "sellerCarry":
+                        value = f'•$ {envelope_data.sellerCarry} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
+                    elif tabLabel == "Text 75e6f183-4111-4131-aacb-8c951466ede8" and field == "solarLien":
+                        value = f'•$ {envelope_data.solarLien}  Solar lien to be taken over subject to the existing loan.'
+                    elif tabLabel == "Text 71be9608-14e4-4202-9641-6535ec2c0ccf" and field == "agentComission":
+                        value = f'•$ {envelope_data.agentComission}  Listing agent commission paid by buyer at COE.'
+                    elif tabLabel == "Text b231eabb-0627-45a6-aa26-b21f1fca082e" and field == "Arrears":
+                        value = f'•$ {envelope_data.Arrears} In seller arrears to be paid by buyer at COE.'
+                    elif tabLabel == "Text 72492c39-9afa-4008-bd82-75ff96a393c1" and field == "Debt":
+                        value = f'existing loan of $ {envelope_data.Debt}'
+                    elif tabLabel == "Text 6d5b60db-784f-4a81-82fb-c483fe6485de" and field == "solarLien":
+                        value = f"Solar lien of $ {envelope_data.solarLien}"
                     tabs[tab].append({
                         "tabLabel": tabLabel,
                         "value": value if value != "null" and value != "null null" else ""
                     })
+   
     envelope = {
         "emailSubject": envelope_data.emailSubject,
         
@@ -396,7 +411,7 @@ async def envelopeCompleted(envelope_data:DocusignHook):
 def getTabs():
     accountID = "d793357d-2249-42c3-a21a-e99f0a993bd7"
     access_token = generateAccessToken()
-    template = getTemplate("Seller Finance Offer", access_token,accountID)
+    template = getTemplate("Texas-Creative Purchase Contract Hudly Title", access_token,accountID)
     documents=requests.get(f"https://na4.docusign.net/restapi/v2.1/accounts/{accountID}/templates/{template['templateId']}/documents",headers={"Authorization": f"Bearer {access_token}"}).json()
     allTabs=[]
     for document in documents["templateDocuments"]:
