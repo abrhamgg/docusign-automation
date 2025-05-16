@@ -336,19 +336,19 @@ def sendEnvelope(envelope_data:EnvelopeData):
                         tabs[tab]=[]
                     value = getattr(envelope_data, field, "")
                     if tabLabel=="Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296" and field=="cashToSeller":
-                        value = f'•$ {envelope_data.cashToSeller} Cash to the sellers at COE.'
+                        value = f'•${envelope_data.cashToSeller} Cash to the sellers at COE.'
                     elif tabLabel == "Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407" and field == "sellerCarry":
-                        value = f'•$ {envelope_data.sellerCarry} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
+                        value = f'•${envelope_data.sellerCarry} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
                     elif tabLabel == "Text 75e6f183-4111-4131-aacb-8c951466ede8" and field == "solarLien":
-                        value = f'•$ {envelope_data.solarLien}  Solar lien to be taken over subject to the existing loan.'
+                        value = f'•${envelope_data.solarLien}  Solar lien to be taken over subject to the existing loan.'
                     elif tabLabel == "Text 71be9608-14e4-4202-9641-6535ec2c0ccf" and field == "agentComission":
-                        value = f'•$ {envelope_data.agentComission}  Listing agent commission paid by buyer at COE.'
+                        value = f'•${envelope_data.agentComission}  Listing agent commission paid by buyer at COE.'
                     elif tabLabel == "Text b231eabb-0627-45a6-aa26-b21f1fca082e" and field == "Arrears":
-                        value = f'•$ {envelope_data.Arrears} In seller arrears to be paid by buyer at COE.'
+                        value = f'•${envelope_data.Arrears} In seller arrears to be paid by buyer at COE.'
                     elif tabLabel == "Text 72492c39-9afa-4008-bd82-75ff96a393c1" and field == "Debt":
-                        value = f'existing loan of $ {envelope_data.Debt}'
+                        value = f'existing loan of ${envelope_data.Debt}'
                     elif tabLabel == "Text 6d5b60db-784f-4a81-82fb-c483fe6485de" and field == "solarLien":
-                        value = f"Solar lien of $ {envelope_data.solarLien}"
+                        value = f"Solar lien of ${envelope_data.solarLien}"
                     tabs[tab].append({
                         "tabLabel": tabLabel,
                         "value": value if value != "null" and value != "null null" else ""
