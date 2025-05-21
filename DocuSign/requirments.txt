@@ -6,3 +6,4 @@ pyjwt
 cryptography
 uvicorn
 pandas
+python-multipart

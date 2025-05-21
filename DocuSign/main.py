@@ -10,8 +10,18 @@ from datetime import datetime,timedelta
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import pandas as pd
-
+from crm_lead_upload import router
+from fastapi.middleware.cors import CORSMiddleware
 app=FastAPI()
+
+app.include_router(router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Input data model
 class EnvelopeData(BaseModel):
