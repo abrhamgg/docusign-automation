@@ -13,7 +13,6 @@ import json
 
 router = APIRouter(prefix='/crm')
 
-# In-memory storage for tokens (use a database in production)
 
 class NameMap(BaseModel):
     """
@@ -29,8 +28,6 @@ class NameMap(BaseModel):
     PropertyZip: str
     PropertyAddressMap: str
     Country: str
-
-
 
 
 def create_contact(data,access_token):
@@ -84,8 +81,6 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid mapping data: {str(e)}")
     
-    
-    
     if not access_token:
         raise HTTPException(status_code=400, detail="No access token available")
     
@@ -116,9 +111,17 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
 
     # Put custom fields in a list
     General_property_fields = { "Property Address":"PropertyAddress"}
+
+    result_data = {
+        'new_leads':0,
+        'existing_leads':0,
+        'error':0,
+        'total_':0
+        }
     try:
         # Process the new leads file
         for index, row in leads_df.iterrows():
+            result_data['total_']+=1
             email = row.get(map_data.email)
             phone = row.get(map_data.phone)
             contactId = ""
@@ -146,7 +149,9 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
                 response = create_contact(data, access_token)
                 # Check for errors
                 if response.get("error"):
+                    result_data["error"] += 1
                     raise HTTPException(status_code=400, detail=f"Error creating contact: {response.get('error')}")
+                result_data["new_leads"] += 1
                 contactId = response.get("contactId")
                 if email:
                     email_phone_contactId_map[email] = contactId
@@ -177,12 +182,14 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
                 data = {"customFields":populated_custome_field}
                 response = update_contact(data, access_token, contactId)
                 if response.get("error"):
+                    result_data["error"] += 1
                     raise HTTPException(status_code=400, detail=f"Error updating contact: {response.get('error')}")
-        return {"message": "Contacts processed successfully"}        
+                result_data["existing_leads"] += 1
+        return result_data       
     except requests.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Error creating/updating contact: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error creating/updating contact: {str(e)}",result = {result_data})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}",result = {result_data})
     
 
 if __name__ == "__main__":
