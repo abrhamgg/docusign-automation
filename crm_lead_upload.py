@@ -66,7 +66,7 @@ async def get_custom_fields(locationId: str, access_token: str):
         print(f"Error fetching custom fields: ")  
         print(e.response.text)
         print("access_token: ",access_token)      
-        raise HTTPException(detail=f"Error fetching custom fields: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error fetching custom fields: {str(e)}")
     
     
 
