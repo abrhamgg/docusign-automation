@@ -13,6 +13,8 @@ import json
 
 router = APIRouter(prefix='/crm')
 
+# In-memory storage for tokens (use a database in production)
+tokens = {"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRoQ2xhc3MiOiJMb2NhdGlvbiIsImF1dGhDbGFzc0lkIjoidXBkdzNJZHd2cWVaSmVmQzduWmciLCJzb3VyY2UiOiJJTlRFR1JBVElPTiIsInNvdXJjZUlkIjoiNjZiMTUxMTM4OGY2OWExOWExZDk5NTZkLWx6aGtkdTQ5IiwiY2hhbm5lbCI6Ik9BVVRIIiwicHJpbWFyeUF1dGhDbGFzc0lkIjoidXBkdzNJZHd2cWVaSmVmQzduWmciLCJvYXV0aE1ldGEiOnsic2NvcGVzIjpbImxvY2F0aW9ucy9jdXN0b21WYWx1ZXMud3JpdGUiLCJsb2NhdGlvbnMvY3VzdG9tRmllbGRzLndyaXRlIiwibG9jYXRpb25zL2N1c3RvbUZpZWxkcy5yZWFkb25seSIsImxvY2F0aW9ucy5yZWFkb25seSIsImNvbnRhY3RzLnJlYWRvbmx5IiwibG9jYXRpb25zL2N1c3RvbVZhbHVlcy5yZWFkb25seSIsImNvbnRhY3RzLndyaXRlIiwiY29udGFjdHMucmVhZG9ubHkiLCJjb252ZXJzYXRpb25zL21lc3NhZ2Uud3JpdGUiLCJjb252ZXJzYXRpb25zL21lc3NhZ2UucmVhZG9ubHkiLCJ1c2Vycy5yZWFkb25seSIsInVzZXJzLndyaXRlIl0sImNsaWVudCI6IjY2YjE1MTEzODhmNjlhMTlhMWQ5OTU2ZCIsInZlcnNpb25JZCI6IjY2YjE1MTEzODhmNjlhMTlhMWQ5OTU2ZCIsImNsaWVudEtleSI6IjY2YjE1MTEzODhmNjlhMTlhMWQ5OTU2ZC1semhrZHU0OSJ9LCJpYXQiOjE3NDc3ODQ5MDcuMTkyLCJleHAiOjE3NDc4NzEzMDcuMTkyfQ.V1NGP_3he7RD-VcyXmfg-EPjJyfeZpfiHayuZzX24XTlwhI2d8UFK25aalRNswji_yu4_6QjatKcpfDxBdK4z2S4pDNRhPaSi9xNvUOMT65qiB1FcQzI8ziBaxMoaooRoCAmjOvdthVbMxLQ9BYo8LTFVB3ffI46q38z2RBog0XyzdGSx0bR38MvQYmHvVHSFENvuAF6Ws5kmCOnzusDvyVkWdx8o92fDhrbMFL0So0K6p8fsYLYu9ZRZ-JqoIw4mHoRLrDzvJDy7-HKR346dg4bBIE7G2lrFPQuLFY8SdjsdWs0ys0VHo7c4v4OKV3qYEKLtLgbhQdiV1F9xLV45NiXPtpoOOgXBX6luVclnlI-kK4ZdMWaIgwryt4n7bOu0lb1Js_kTQfzBd5GRqZ65PFwMlz1N9E8uPgj6DBH3x76611H8WMhfAHZeq4mrxj83UKxzdDIm-mJWAyR2ipsQcy4Y-kgHjx3M02J0uttee2HoVusU1qgCET6LLs3k3KvllE92pORDbMoFKLgdyvg8BLUCsidIFI9lnmDP901mFNGfF7-oQyQb8E1t5WFSw8PbA6FH_i41zYUzfjXcJdkTTBqLQdBy5zWn5a2H9rDaMmjRT_fbg6paubrrLfoTmxy94scuAFGzL4oX06yXSqVPREslKckR9LJ2VmFvqKsKMc"}
 
 class NameMap(BaseModel):
     """
@@ -29,6 +31,9 @@ class NameMap(BaseModel):
     PropertyAddressMap: str
     Country: str
 
+
+def get_access_token():
+    return tokens.get("access_token")
 
 def create_contact(data,access_token):
     url = f"https://services.leadconnectorhq.com/contacts"
@@ -80,6 +85,8 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
         map_data = NameMap(**map_data_dict)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid mapping data: {str(e)}")
+    
+    
     
     if not access_token:
         raise HTTPException(status_code=400, detail="No access token available")
