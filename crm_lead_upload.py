@@ -48,9 +48,7 @@ def update_contact(data,access_token, contactId):
     response = requests.put(url, headers=headers, json=data)
     return response.json()
 
-@router.get("/get-custom-fields/{locationId}")
-async def get_custom_fields(locationId: str):
-    access_token = tokens.get("access_token")
+async def get_custom_fields(locationId: str, access_token: str):
     if not access_token:
         raise HTTPException(status_code=400, detail="No access token available")
     
@@ -103,7 +101,7 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
         if phone:
             email_phone_contactId_map[phone] = contactId
 
-    result = await get_custom_fields(locationId)
+    result = await get_custom_fields(locationId,access_token)
     custome_fields = result.get("customFields")
 
     if not custome_fields:
