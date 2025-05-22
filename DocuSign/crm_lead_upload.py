@@ -194,6 +194,3 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}",result = {result_data})
     
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8000)
