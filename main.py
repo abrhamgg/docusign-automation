@@ -12,6 +12,7 @@ from cryptography.hazmat.backends import default_backend
 import pandas as pd
 from crm_lead_upload import router
 from fastapi.middleware.cors import CORSMiddleware
+
 app=FastAPI()
 
 app.include_router(router)
