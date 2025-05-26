@@ -65,7 +65,6 @@ async def get_custom_fields(locationId: str, access_token: str):
     except requests.RequestException as e:
         print(f"Error fetching custom fields: ")  
         print(e.response.text)
-        print("access_token: ",access_token)      
         raise HTTPException(status_code=400, detail=f"Error fetching custom fields: {str(e)}")
     
     
@@ -99,11 +98,11 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
         email = row.get("Email")
         phone = row.get("Phone")
         contactId = row.get("Contact Id")
-        if email:
+        if pd.notna(email):
             email_phone_contactId_map[email] = contactId
-        if phone:
+        if pd.notna(phone):
             email_phone_contactId_map[phone] = contactId
-
+    
     result = await get_custom_fields(locationId,access_token)
     custome_fields = result.get("customFields")
 
@@ -129,9 +128,9 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
             email = row.get(map_data.email)
             phone = row.get(map_data.phone)
             contactId = ""
-            if email and email in email_phone_contactId_map:
+            if email and pd.notna(email) and email in email_phone_contactId_map:
                 contactId = email_phone_contactId_map[email]
-            elif phone and phone in email_phone_contactId_map:
+            elif phone and pd.notna(phone) and phone in email_phone_contactId_map:
                 contactId = email_phone_contactId_map[phone]
             else:
                 # Create a new contact
@@ -174,7 +173,15 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
                     if col_name not in member_data or pd.isna(member_data[col_name].iloc[0]) or member_data[col_name].iloc[0] == "":
                         # Now populate this empty address slot
                         for key, value in General_property_fields.items():
-                            val = row.get(getattr(map_data, value))
+                            # val = row.get(getattr(map_data,value))
+                            city = row.get(getattr(map_data, "PropertyCity"))
+                            city = "" if pd.isna(city) else city
+                            state = row.get(getattr(map_data, "PropertyState"))
+                            state = "" if pd.isna(state) else state
+                            zip_code = row.get(getattr(map_data, "PropertyZip"))
+                            zip_code = "" if pd.isna(zip_code) else zip_code
+
+                            val = f"{row.get(getattr(map_data, value))}, {city}, {zip_code}, {state}" 
                             if pd.notna(val) and key in property_address_custome_fields:
                                 map_key = f"{' '.join(key.split(' ')[:2])} {i}"
                                 populated_custome_field.append({
