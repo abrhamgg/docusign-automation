@@ -63,8 +63,6 @@ async def get_custom_fields(locationId: str, access_token: str):
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        print(f"Error fetching custom fields: ")  
-        print(e.response.text)
         raise HTTPException(status_code=400, detail=f"Error fetching custom fields: {str(e)}")
     
     
@@ -80,10 +78,7 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
     try:
         map_data = NameMap(**map_data_dict)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid mapping data: {str(e)}")
-    
-    
-    
+        raise HTTPException(status_code=400, detail=f"Invalid mapping data: {str(e)}")    
     if not access_token:
         raise HTTPException(status_code=400, detail="No access token available")
     
@@ -95,10 +90,10 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
 
     # Process the members file
     for index, row in members_df.iterrows():
-        email = row.get("Email")
+        email = row.get("Email")        
         phone = row.get("Phone")
         contactId = row.get("Contact Id")
-        if pd.notna(email):
+        if  pd.notna(email):
             email_phone_contactId_map[email] = contactId
         if pd.notna(phone):
             email_phone_contactId_map[phone] = contactId
@@ -125,43 +120,47 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
         # Process the new leads file
         for index, row in leads_df.iterrows():
             result_data['total_']+=1
-            email = row.get(map_data.email)
-            phone = row.get(map_data.phone)
+            email = row.get(map_data.email) if pd.notna(row.get(map_data.email)) else None
+            phone = row.get(map_data.phone) if pd.notna(row.get(map_data.phone)) else None
+           
+            if not email and not phone:
+                result_data["error"] += 1
+                continue
             contactId = ""
             if email and pd.notna(email) and email in email_phone_contactId_map:
                 contactId = email_phone_contactId_map[email]
             elif phone and pd.notna(phone) and phone in email_phone_contactId_map:
                 contactId = email_phone_contactId_map[phone]
             else:
-                # Create a new contact
                 new_custome_field = []
                 for key, value in General_property_fields.items():
                     val= row.get(getattr(map_data, value))
                     if pd.notna(val) and key in property_address_custome_fields:
                         new_custome_field.append({"id":property_address_custome_fields.get(key), "value": val})
-
                 data = {
                     "firstName": row.get(map_data.firstName),
                     "lastName": row.get(map_data.lastName),
-                    "email": "" if pd.isna(email) else email,
-                    "phone":  "" if pd.isna(phone) else phone,
+                    "email":email,
+                    "phone": str(int(phone)) if phone else "",
                     "country": row.get(map_data.Country),
                     "locationId": locationId,
-                    "customFields": new_custome_field,}
-
-                response = create_contact(data, access_token)
-                # Check for errors
-                if response.get("error"):
+                    "customFields": new_custome_field}
+                try:
+                    response = create_contact(data, access_token)
+                    # Check for errors
+                    if response.get("error"):
+                        result_data["error"] += 1
+                        continue
+                    result_data["new_leads"] += 1
+                    contactId = response.get("contactId")
+                    if email:
+                        email_phone_contactId_map[email] = contactId
+                    if phone:
+                        email_phone_contactId_map[phone] = contactId
+                except:
                     result_data["error"] += 1
-                    raise HTTPException(status_code=400, detail=f"Error creating contact: {response.get('error')}")
-                result_data["new_leads"] += 1
-                contactId = response.get("contactId")
-                if email:
-                    email_phone_contactId_map[email] = contactId
-                if phone:
-                    email_phone_contactId_map[phone] = contactId
+                    
                 continue
-
             # Update the contact with the new data
             if contactId:
                 populated_custome_field = []
@@ -194,11 +193,11 @@ async def createContact(locationId:str,access_token:str = Form(...), map_data: s
                 response = update_contact(data, access_token, contactId)
                 if response.get("error"):
                     result_data["error"] += 1
-                    raise HTTPException(status_code=400, detail=f"Error updating contact: {response.get('error')}")
+                    continue
                 result_data["existing_leads"] += 1
         return result_data       
     except requests.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Error creating/updating contact: {str(e)}",result = {result_data})
+        return result_data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}",result = {result_data})
+        return result_data
     
