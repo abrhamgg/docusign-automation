@@ -206,7 +206,8 @@ def sendEnvelope(envelope_data:EnvelopeData):
         "Midwest": ["Empora Title", "145 E Rich St, Floor 4 Columbus, OH 43215", "(614) 660-5503", "info@emporatitle.com"],
         "Arizona": ["1st Option Title", "7975 N. Hayden Road, Suite A-200 Scottsdale, AZ 85258", "(480)-795-3491", "carrie@1stoptiontitle.com"],
         "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
-        "Georgia": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ]
+        "Georgia": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ],
+        "Kane Title":["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"]
     }
 
     access_token =generateAccessToken()
@@ -248,7 +249,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
             "agentComission":["Text d47a40c5-e305-4bf2-9d0f-23327efc7dc1","Text 71be9608-14e4-4202-9641-6535ec2c0ccf"],
             "purchasePrice":["Text d880ff92-fb45-4b96-87ac-2311bb1ca6ad"],
             "solarLien":["Text 45c12c3b-51e6-4e0c-903f-28ec6f4c903b","Text 75e6f183-4111-4131-aacb-8c951466ede8","Text 6d5b60db-784f-4a81-82fb-c483fe6485de"],
-            "cashToSeller":["Text 435cd2a7-605d-4e1c-b808-efcfcf576345","Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296"],
+            "cashToSeller":["Text 435cd2a7-605d-4e1c-b808-efcfcf576345","Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296","Text ad59c80a-266a-424c-b64d-9bb7c4a0c56a"],
             "Arrears":["Text b231eabb-0627-45a6-aa26-b21f1fca082e"],
             "CompanyTitle":["Text 4d29231e-a530-47c7-a852-9afa11ca6817","Text b618a341-0f01-4e87-abee-39aa2becae06"],
             "CompanyEmail":["Text bfcdd833-8930-4a77-9a85-cc6ee3000b14"],
