@@ -129,11 +129,20 @@ async def create_contact_from_csv(
         'total_': 0
     }
 
+    # for _, row in leads_df.iterrows():
+    #     result_data['total_'] += 1
+
+    #     email = row.get(map_data.email) if pd.notna(row.get(map_data.email)) else None
+    #     phone = row.get(map_data.phone) if pd.notna(row.get(map_data.phone)) else None
+
     for _, row in leads_df.iterrows():
         result_data['total_'] += 1
 
-        email = row.get(map_data.email) if pd.notna(row.get(map_data.email)) else None
-        phone = row.get(map_data.phone) if pd.notna(row.get(map_data.phone)) else None
+        # Clean NaNs
+        row = row.where(pd.notna(row), None)
+
+        email = row.get(map_data.email)
+        phone = row.get(map_data.phone)
 
         if not email and not phone:
             result_data["error"] += 1
