@@ -86,6 +86,7 @@ async def create_contact_from_csv(
     new_members_file: UploadFile = File(...),
     customeFields: str = Form(...)
 ):
+    
     try:
         map_data_dict = json.loads(map_data)
         map_data = NameMap(**map_data_dict)
@@ -101,7 +102,6 @@ async def create_contact_from_csv(
 
     members_df = pd.read_csv(members_file.file)
     leads_df = pd.read_csv(new_members_file.file)
-
     # Map emails/phones to contact IDs
     for _, row in members_df.iterrows():
         email = row.get("Email")
@@ -120,7 +120,11 @@ async def create_contact_from_csv(
         raise HTTPException(status_code=400, detail="No custom fields available")
 
     custom_field_id_map = {field['name']: field["id"] for field in custom_fields}
-    general_property_fields = {"Property Address": "PropertyAddress"}
+    general_property_fields = {"Property Address": "PropertyAddress",
+                               "Property City": "PropertyCity",
+                               "Property State": "PropertyState",
+                               "Property Zip": "PropertyZip"
+                               }
 
     result_data = {
         'new_leads': 0,
@@ -183,6 +187,7 @@ async def create_contact_from_csv(
                     "customFields": new_custom_fields,
                     "tags": [tag.strip() for tag in row.get(map_data.Tag).split(",")] if pd.notna(row.get(map_data.Tag)) else []
                 }
+
 
                 response = create_contact(contact_payload, access_token)
 
