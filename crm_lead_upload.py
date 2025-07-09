@@ -95,13 +95,14 @@ async def create_contact_from_csv(
 
     try:
         customeFields = json.loads(customeFields)
+        customeFields = [field.strip() for field in customeFields if field.strip()]
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON format for customFields")
 
     email_phone_contact_id_map = {}
 
-    members_df = pd.read_csv(members_file.file)
-    leads_df = pd.read_csv(new_members_file.file)
+    members_df = pd.read_csv(members_file.file, index_col=False)
+    leads_df = pd.read_csv(new_members_file.file, index_col=False)
     # Map emails/phones to contact IDs
     for _, row in members_df.iterrows():
         email = row.get("Email")
@@ -115,11 +116,10 @@ async def create_contact_from_csv(
 
     result = await get_custom_fields(locationId, access_token)
     custom_fields = result.get("customFields", [])
-
     if not custom_fields:
         raise HTTPException(status_code=400, detail="No custom fields available")
 
-    custom_field_id_map = {field['name']: field["id"] for field in custom_fields}
+    custom_field_id_map = {field['name'].strip(): field["id"] for field in custom_fields}
     general_property_fields = {"Property Address": "PropertyAddress",
                                "Property City": "PropertyCity",
                                "Property State": "PropertyState",
@@ -132,12 +132,6 @@ async def create_contact_from_csv(
         'error': 0,
         'total_': 0
     }
-
-    # for _, row in leads_df.iterrows():
-    #     result_data['total_'] += 1
-
-    #     email = row.get(map_data.email) if pd.notna(row.get(map_data.email)) else None
-    #     phone = row.get(map_data.phone) if pd.notna(row.get(map_data.phone)) else None
 
     for _, row in leads_df.iterrows():
         result_data['total_'] += 1
@@ -156,16 +150,15 @@ async def create_contact_from_csv(
         custom_field_values = [
             {"id": custom_field_id_map[field], "value": row.get(field, "")}
             for field in customeFields if field in custom_field_id_map
+            
         ]
-
+        
         contact_id = email_phone_contact_id_map.get(email) or email_phone_contact_id_map.get(phone)
-
         if not contact_id:
             try:
                 phone_clean = re.sub(r'\D', '', phone) if phone else ""
                 if not phone_clean:
                     raise ValueError("Phone number is invalid or empty.")
-
                 new_custom_fields = []
                 for key, attr in general_property_fields.items():
                     val = row.get(getattr(map_data, attr))
@@ -174,6 +167,7 @@ async def create_contact_from_csv(
                             "id": custom_field_id_map[key],
                             "value": val
                         })
+                        
                 new_custom_fields.extend(custom_field_values)
 
                 contact_payload = {
@@ -203,10 +197,8 @@ async def create_contact_from_csv(
                     email_phone_contact_id_map[phone] = contact_id
 
             except Exception as e:
-                print("Error creating contact:", e)
                 result_data["error"] += 1
             continue
-
         # Update existing contact
         member_data = members_df[members_df["Contact Id"] == contact_id]
         populated_fields = []
