@@ -41,7 +41,6 @@ def create_contact(data, access_token):
         "Version": "2021-07-28"
     }
     response = requests.post(url, headers=headers, json=data)
-    print("Create contact response:", response)
     return response.json()
 
 
@@ -152,13 +151,13 @@ async def create_contact_from_csv(
             for field in customeFields if field in custom_field_id_map
             
         ]
-        
-        contact_id = email_phone_contact_id_map.get(email) or email_phone_contact_id_map.get(phone)
+        contact_id = email_phone_contact_id_map.get(email) or email_phone_contact_id_map.get(phone) or None
         if not contact_id:
             try:
                 phone_clean = re.sub(r'\D', '', phone) if phone else ""
-                if not phone_clean:
-                    raise ValueError("Phone number is invalid or empty.")
+                # if not phone_clean:
+                #     print("Phone number is invalid or empty.")
+                #     raise ValueError("Phone number is invalid or empty.")
                 new_custom_fields = []
                 for key, attr in general_property_fields.items():
                     val = row.get(getattr(map_data, attr))
@@ -184,7 +183,7 @@ async def create_contact_from_csv(
 
 
                 response = create_contact(contact_payload, access_token)
-
+                print("Create contact response:", response)
                 if response.get("statusCode", 200) >= 400:
                     result_data["error"] += 1
                     continue
@@ -228,5 +227,4 @@ async def create_contact_from_csv(
             continue
         result_data["existing_leads"] += 1
 
-    print("Final result:", result_data)
     return result_data
