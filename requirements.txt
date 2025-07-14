@@ -7,3 +7,4 @@ cryptography
 uvicorn
 pandas
 python-multipart
+pynamodb
