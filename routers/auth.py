@@ -97,6 +97,5 @@ def redirect_handler(code: str):
     return {
         "message": "OAuth connection successful!",
         "location_id": location_id,
-        "location_name": item["location_name"],
         "expires_at": item["expires_at"]
     }
