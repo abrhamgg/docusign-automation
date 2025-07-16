@@ -7,6 +7,7 @@ import httpx
 from dotenv import load_dotenv
 import re
 import json
+import os
 
 load_dotenv()
 
@@ -15,7 +16,7 @@ router = APIRouter(
     tags=["Craimer County Stream"], 
 )
 
-WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/qsXePQTcTU21ZEUWJHq4/webhook-trigger/fa4b7258-b93c-4ff9-9365-07ab4e8bd222"
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 @router.post("/data-ingest")
 async def ingest_data(request: Request):
