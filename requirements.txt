@@ -9,3 +9,4 @@ pandas
 python-multipart
 pynamodb
 boto3
+httpx
