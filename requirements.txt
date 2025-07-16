@@ -8,3 +8,4 @@ uvicorn
 pandas
 python-multipart
 pynamodb
+boto3

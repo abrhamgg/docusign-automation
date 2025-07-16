@@ -13,11 +13,14 @@ import pandas as pd
 from crm_lead_upload import router
 from craimer_countystream import router as craimer_router 
 from fastapi.middleware.cors import CORSMiddleware
+from routers import auth, update_phones
 
 app=FastAPI()
 
 app.include_router(router)
 app.include_router(craimer_router)
+app.include_router(auth.router, prefix="/auth")
+app.include_router(update_phones.router, prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
