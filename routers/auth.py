@@ -82,20 +82,34 @@ def redirect_handler(code: str):
     )
     location_data = location_resp.json()
 
-    # Save to DynamoDB
+    # Upsert logic: insert or update location_id entry
+    now_ts = round(dt.now().timestamp())
+    expires_at = str(now_ts + token_json["expires_in"])
+
+    # Build the base item
     item = {
-    "location_id": location_id,
-    "token": token_json["access_token"],
-    "refresh": token_json["refresh_token"],
-    "expires_at": str(round(dt.now().timestamp() + token_json["expires_in"]))
-    }
-
-
-
-    table.put_item(Item=item)
-
-    return {
-        "message": "OAuth connection successful!",
         "location_id": location_id,
-        "expires_at": item["expires_at"]
+        "token": access_token,
+        "refresh": refresh_token,
+        "expires_at": expires_at
     }
+
+    # Check if location_id already exists
+    existing = table.get_item(Key={"location_id": location_id}).get("Item")
+
+    if existing:
+        # 🟡 Update token + refresh + expires
+        print(f"[INFO] Location {location_id} already exists. Updating tokens.")
+        table.update_item(
+            Key={"location_id": location_id},
+            UpdateExpression="SET token = :t, refresh = :r, expires_at = :e",
+            ExpressionAttributeValues={
+                ":t": access_token,
+                ":r": refresh_token,
+                ":e": expires_at
+            }
+        )
+    else:
+        # 🟢 New user — insert full item
+        print(f"[INFO] New location connected: {location_id}")
+        table.put_item(Item=item)
