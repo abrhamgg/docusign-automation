@@ -1,25 +1,12 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, Request
 from services.token_service import get_valid_token
 import requests
 
 router = APIRouter()
 
-# ✅ Pydantic model
-class PhoneInfo(BaseModel):
-    phone: str
-    type: str
-
-class UpdatePhoneRequest(BaseModel):
-    contact_id: str
-    location_id: str
-    phones: list[dict]  # allow raw dicts so we can sanitize ourselves
-
-
-# 🏷️ Clean up phone type labels
-def get_label_from_type(phone_type: str):
+def get_label_from_type(phone_type: str) -> str:
     pt = phone_type.lower().strip()
-    if pt in ["mobile", "mobile or cell", "wireless"]:
+    if pt in ["mobile", "wireless", "cell"]:
         return "Mobile"
     elif pt == "home":
         return "Home"
@@ -27,56 +14,110 @@ def get_label_from_type(phone_type: str):
         return "Work"
     elif pt in ["landline", "voip"]:
         return "Landline"
-    return "Other"
-
+    return "Mobile"  # fallback default
 
 @router.post("/update-phones")
-def update_phones(payload: UpdatePhoneRequest):
-    token = get_valid_token(payload.location_id)
+async def update_phones(request: Request):
+    try:
+        body = await request.json()
 
-    print(f"🔗 Using token for location {payload}")
-    # ✅ Sanitize and validate phones
-    cleaned_phones = []
-    for phone_obj in payload.phones:
-        # Ensure it's a dict and has correct keys
-        if isinstance(phone_obj, dict) and "phone" in phone_obj and "type" in phone_obj:
-            phone_val = str(phone_obj["phone"]).strip()
-            type_val = str(phone_obj["type"]).strip()
-            if phone_val and type_val:
-                cleaned_phones.append({"phone": phone_val, "type": type_val})
-            else:
-                print(f"❌ Skipping phone (missing value): {phone_obj}")
-        else:
-            print(f"❌ Skipping malformed phone: {phone_obj}")
+        # Handle if data is wrapped in `customData`
+        raw_data = body.get("customData", body)
 
-    if not cleaned_phones:
-        return {"error": "No valid phone numbers to process."}
+        # Normalize keys (fix trailing space issues)
+        data = {k.strip().lower(): v for k, v in raw_data.items()}
 
-    # ✅ Prepare payload
-    update_data = {
-        "phone": cleaned_phones[0]["phone"],
-        "phoneLabel": get_label_from_type(cleaned_phones[0]["type"]),
-        "additionalPhones": [
-            {
-                "phone": phone["phone"],
-                "phoneLabel": get_label_from_type(phone["type"])
+        contact_id = data.get("contact_id")
+        location_id = data.get("location_id")
+
+        if not contact_id or not location_id:
+            return {"error": "Missing contact_id or location_id"}
+
+        # 🔍 Extract new phones
+        phones = []
+        for i in range(1, 21):
+            phone_key = f"phone {i}"
+            type_key = f"phone {i} type"
+            phone = data.get(phone_key, "").strip()
+            phone_type = data.get(type_key, "Mobile").strip()
+            if phone:
+                phones.append({
+                    "phone": phone,
+                    "type": phone_type
+                })
+
+        if not phones:
+            return {"error": "No valid phone numbers provided."}
+
+        # 🔐 Get token
+        token = get_valid_token(location_id)
+
+        # 📥 Fetch existing phones from GHL
+        existing_resp = requests.get(
+            f"https://services.leadconnectorhq.com/contacts/{contact_id}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Version": "2021-07-28"
             }
-            for phone in cleaned_phones[1:]
-        ]
-    }
+        )
+        existing = existing_resp.json()
 
-    # 🔁 Send PUT request to GHL
-    url = f"https://services.leadconnectorhq.com/contacts/{payload.contact_id}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "Version": "2021-07-28"
-    }
+        existing_phones = []
 
-    resp = requests.put(url, headers=headers, json=update_data)
+        # Include main phone if it exists
+        if "phone" in existing and existing["phone"]:
+            existing_phones.append({
+                "phone": existing["phone"],
+                "type": existing.get("phoneLabel", "Mobile")
+            })
 
-    return {
-        "status": resp.status_code,
-        "payload_sent": update_data,
-        "ghl_response": resp.json()
-    }
+        # Include additionalPhones
+        for p in existing.get("additionalPhones", []):
+            if "phone" in p:
+                existing_phones.append({
+                    "phone": p["phone"],
+                    "type": p.get("phoneLabel", "Mobile")
+                })
+
+        # ✨ Merge and deduplicate
+        seen = set()
+        all_phones = existing_phones + phones
+        merged_phones = []
+        for p in all_phones:
+            number = p["phone"].strip()
+            norm_number = number.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+            if norm_number and norm_number not in seen:
+                seen.add(norm_number)
+                merged_phones.append({
+                    "phone": number,
+                    "phoneLabel": get_label_from_type(p.get("type", "Mobile"))
+                })
+
+        if not merged_phones:
+            return {"error": "All phone numbers are duplicates or empty."}
+
+        update_data = {
+            "phone": merged_phones[0]["phone"],
+            "phoneLabel": merged_phones[0]["phoneLabel"],
+            "additionalPhones": merged_phones[1:]
+        }
+
+        # ✅ PUT update
+        resp = requests.put(
+            f"https://services.leadconnectorhq.com/contacts/{contact_id}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+                "Version": "2021-07-28"
+            },
+            json=update_data
+        )
+
+        return {
+            "status": resp.status_code,
+            "payload_sent": update_data,
+            "ghl_response": resp.json()
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
