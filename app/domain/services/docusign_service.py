@@ -74,10 +74,6 @@ class DocusignService:
             'MLS Agent E-Mail': 'ClientEmail',
             'MLS Brokerage Name': 'Broker',
             'APN': 'Apn',
-            # 'Year Built': 'Year',
-            'Loan 1 Balance': 'Debt',
-            'Listing Agent Commision': 'agentComission',
-            'Cash to seller': 'CashToSeller',
             'Property Address': 'Address',
             'Property City': 'city_name',
             'Property State': 'state',
@@ -94,17 +90,19 @@ class DocusignService:
          # Further enrich and format data
         envelope_data_dict['FirstName'] = contact.get('firstName', '')
         envelope_data_dict['LastName'] = contact.get('lastName', '')
-        envelope_data_dict['CashToSeller'] = format_currency(envelope_data_dict.get('CashToSeller')) or format_currency(property_dict.get('cash_to_seller'))
-        envelope_data_dict['companyName'] = contact.get('companyName', '')
-        envelope_data_dict['sellerCarry'] = envelope_data_dict.get('sellerCarry') or property_dict.get('seller_carry_terms', '')
-        envelope_data_dict['Debt'] = format_currency(envelope_data_dict.get('Debt')) or format_currency(property_dict.get('debt', ''))
-        envelope_data_dict['purchasePrice'] = format_currency(property_dict.get('contract_price', ''))
-        envelope_data_dict['agentComission'] = format_currency(envelope_data_dict.get('agentComission')) or format_currency(property_dict.get('agent_commission', ''))
+        envelope_data_dict['Phone'] = contact.get('phone', '')
+        envelope_data_dict['Email'] = contact.get('email', '')
+        envelope_data_dict['ClientEmail'] = contact.get('email', '')
         
+        envelope_data_dict['CashToSeller'] = format_currency(property_dict.get('cash_to_seller'))
+        envelope_data_dict['cashToSeller'] = format_currency(property_dict.get('cash_to_seller')) # TODO change this we can't have two attributes literally the same
+        envelope_data_dict['companyName'] = contact.get('companyName', '')
+        envelope_data_dict['sellerCarry'] = property_dict.get('seller_carry_terms', '')
+        envelope_data_dict['Debt'] = format_currency(property_dict.get('loan_balance', ''))
+        envelope_data_dict['purchasePrice'] = format_currency(property_dict.get('contract_price', ''))
+        envelope_data_dict['agentComission'] = format_currency(property_dict.get('agent_commission', ''))
+
         envelope = EnvelopeData(**envelope_data_dict)
-
-       
-
 
         return envelope
 

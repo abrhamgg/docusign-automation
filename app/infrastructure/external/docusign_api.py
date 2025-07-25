@@ -230,7 +230,7 @@ class DocuSignAPI:
         if envelope_data.agentComission and envelope_data.agentComission!="":
             envelope_data.agentComission=envelope_data.agentComission.split(".")[0][1:]
         if envelope_data.CashToSeller and envelope_data.CashToSeller!="":
-            envelope_data.CashToSeller=str(envelope_data.CashToSeller)+" "+"cash to the sellers at COE."
+            envelope_data.CashToSeller=str(envelope_data.CashToSeller)
             
         # Select the correct tab mapping
         tab_mappings = {}
@@ -253,26 +253,25 @@ class DocuSignAPI:
         tabs = {"textTabs": [], "fullNameTabs": []}
         for tab_type, fields in tab_mappings.items(): # iteration of two
             for field_name, tab_ids in fields.items():
-                field_value = getattr(envelope_data, field_name, "")
-                if field_value and field_value not in ["N/A", "None"]:
-                    for tab_id in tab_ids:
-                        # Add custom logic for specific tabs
-                        if tab_id=="Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296" and field_value=="cashToSeller":
-                            field_value = f'•${envelope_data.cashToSeller} Cash to the sellers at COE.'
-                        elif tab_id == "Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407" and field_value == "sellerCarry":
-                            field_value = f'•${envelope_data.sellerCarry} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
-                        elif tab_id == "Text 75e6f183-4111-4131-aacb-8c951466ede8" and field_value == "solarLien":
-                            field_value = f'•${envelope_data.solarLien}  Solar lien to be taken over subject to the existing loan.'
-                        elif tab_id == "Text 71be9608-14e4-4202-9641-6535ec2c0ccf" and field_value == "agentComission":
-                            field_value = f'•${envelope_data.agentComission}  Listing agent commission paid by buyer at COE.'
-                        elif tab_id == "Text b231eabb-0627-45a6-aa26-b21f1fca082e" and field_value == "Arrears":
-                            field_value = f'•${envelope_data.Arrears} In seller arrears to be paid by buyer at COE.'
-                        elif tab_id == "Text 72492c39-9afa-4008-bd82-75ff96a393c1" and field_value == "Debt":
-                            field_value = f'existing loan of ${envelope_data.Debt}'
-                        elif tab_id == "Text 6d5b60db-784f-4a81-82fb-c483fe6485de" and field_value == "solarLien":
-                            field_value = f"Solar lien of ${envelope_data.solarLien}"
+                field_value = getattr(envelope_data, field_name, "")                
+                for tab_id in tab_ids:
+                    # Add custom logic for specific tabs
+                    if tab_id=="Text 4c7b42bd-90e8-4b1f-8ad2-d47343493296" and field_name == "cashToSeller":
+                        field_value = f'•{envelope_data.CashToSeller} Cash to the sellers at COE.'
+                    elif tab_id == "Text 8829e6fd-2cb7-425a-bfcd-4026dd2a3407" and field_name == "sellerCarry":
+                        field_value = f'•${envelope_data.sellerCarry} Seller carry to be paid to the sellers in 48 equal payments of $166.67 per month.'
+                    elif tab_id == "Text 75e6f183-4111-4131-aacb-8c951466ede8" and field_name == "solarLien":
+                        field_value = f'•${envelope_data.solarLien}  Solar lien to be taken over subject to the existing loan.'
+                    elif tab_id == "Text 71be9608-14e4-4202-9641-6535ec2c0ccf" and field_name == "agentComission":
+                        field_value = f'•${envelope_data.agentComission}  Listing agent commission paid by buyer at COE.'
+                    elif tab_id == "Text b231eabb-0627-45a6-aa26-b21f1fca082e" and field_name == "Arrears":
+                        field_value = f'•${envelope_data.Arrears} In seller arrears to be paid by buyer at COE.'
+                    elif tab_id == "Text 72492c39-9afa-4008-bd82-75ff96a393c1" and field_name == "Debt":
+                        field_value = f'existing loan of ${envelope_data.Debt}'
+                    elif tab_id == "Text 6d5b60db-784f-4a81-82fb-c483fe6485de" and field_name == "solarLien":
+                        field_value = f"Solar lien of ${envelope_data.solarLien}"
 
-                        tabs[tab_type].append({"tabLabel": tab_id, "value": field_value})
+                    tabs[tab_type].append({"tabLabel": tab_id, "value": field_value})
         
         # Construct the final envelope payload
         envelope_payload = {

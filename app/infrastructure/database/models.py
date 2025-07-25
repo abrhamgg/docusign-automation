@@ -23,7 +23,8 @@ class Property(Model):
     cash_to_seller = NumberAttribute(null=True)
     seller_carry_terms = UnicodeAttribute(null=True)
     agent_commission = NumberAttribute(null=True)
-    debt = NumberAttribute(null=True)
+    loan_balance = NumberAttribute(null=True)
+    seller_carry_terms = UnicodeAttribute(null=True)    
     contract_price = NumberAttribute(null=True)
     
 class Connection(Model):
