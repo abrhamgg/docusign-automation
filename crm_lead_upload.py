@@ -123,7 +123,12 @@ async def create_contact_from_csv(
     # Build map of email/phone to contact ID for fast lookup
     for _, row in members_df.iterrows():
         email = row.get("Email")
+<<<<<<< HEAD
         phone = normalize_phone(row.get("Phone"))
+=======
+        phone = row.get("Phone")
+        phone = re.sub(r'\D', '', str(phone)) if pd.notna(phone) else None
+>>>>>>> origin/main
         contact_id = row.get("Contact Id")
 
         if pd.notna(email):
@@ -133,6 +138,8 @@ async def create_contact_from_csv(
 
     # Get all available custom fields from CRM
     result = await get_custom_fields(locationId, access_token)
+    if not result or "customFields" not in result:
+        raise HTTPException(status_code=400, detail="Failed to fetch custom fields")
     custom_fields = result.get("customFields", [])
     if not custom_fields:
         raise HTTPException(status_code=400, detail="No custom fields available")
@@ -172,6 +179,7 @@ async def create_contact_from_csv(
                 "row_data": row.to_dict()
             })
             continue
+<<<<<<< HEAD
 
         try:
             # Prepare custom field payload
@@ -185,6 +193,23 @@ async def create_contact_from_csv(
             if not contact_id:
                 # Create new contact
                 phone_clean = normalize_phone(row.get(map_data.phone)) if row.get(map_data.phone) else ""
+=======
+        if phone:
+            phone =re.sub(r'\D', '', str(phone))
+            if len(phone) <= 10:
+                phone = "1" + phone  # Assuming US format, prepend '1' if phone is less than 10 digits
+        # Prepare custom fields
+        custom_field_values = [
+            {"id": custom_field_id_map[field], "value": row.get(field, "")}
+            for field in customeFields if field in custom_field_id_map
+            
+        ]
+        contact_id = email_phone_contact_id_map.get(email) or email_phone_contact_id_map.get(phone) or None
+        if not contact_id:
+            try:
+                # if not phone:
+                #     raise ValueError("Phone number is invalid or empty.")
+>>>>>>> origin/main
                 new_custom_fields = []
 
                 for key, attr in general_property_fields.items():
@@ -202,7 +227,7 @@ async def create_contact_from_csv(
                     "lastName": row.get(map_data.lastName),
                     "fullName": row.get(map_data.fullName) if pd.notna(row.get(map_data.fullName)) else None,
                     "email": email,
-                    "phone": phone_clean,
+                    "phone": phone,
                     "country": row.get(map_data.Country),
                     "locationId": locationId,
                     "customFields": new_custom_fields,
@@ -210,9 +235,12 @@ async def create_contact_from_csv(
                 }
 
                 response = create_contact(contact_payload, access_token)
+<<<<<<< HEAD
                 print("Create contact response:", response)
 
                 # ✅ If contact creation failed, track and skip
+=======
+>>>>>>> origin/main
                 if response.get("statusCode", 200) >= 400:
                     result_data["error"] += 1
                     result_data["skipped_rows"].append({
