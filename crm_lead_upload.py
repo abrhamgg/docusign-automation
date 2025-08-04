@@ -11,7 +11,11 @@ router = APIRouter(prefix='/crm')
 # -----------------------------
 # Models
 # -----------------------------
+
 class NameMap(BaseModel):
+    """
+    Model for mapping CRM field names to input CSV headers.
+    """
     firstName: str
     lastName: str
     email: str
@@ -25,9 +29,11 @@ class NameMap(BaseModel):
     fullName: str = None
     Tag: str = None
 
+
 # -----------------------------
-# Utility Functions
+# Functions
 # -----------------------------
+
 def create_contact(data, access_token):
     url = "https://services.leadconnectorhq.com/contacts"
     headers = {
@@ -37,6 +43,7 @@ def create_contact(data, access_token):
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
+
 def update_contact(data, access_token, contact_id):
     url = f"https://services.leadconnectorhq.com/contacts/{contact_id}"
     headers = {
@@ -45,6 +52,7 @@ def update_contact(data, access_token, contact_id):
     }
     response = requests.put(url, headers=headers, json=data)
     return response.json()
+
 
 async def get_custom_fields(location_id: str, access_token: str):
     if not access_token:
@@ -63,9 +71,11 @@ async def get_custom_fields(location_id: str, access_token: str):
     except requests.RequestException as e:
         raise HTTPException(status_code=400, detail=f"Error fetching custom fields: {str(e)}")
 
+
 # -----------------------------
 # Main Endpoint
 # -----------------------------
+
 @router.post("/upload-contact")
 async def create_contact_from_csv(
     locationId: str,
@@ -75,27 +85,13 @@ async def create_contact_from_csv(
     new_members_file: UploadFile = File(...),
     customeFields: str = Form(...)
 ):
-    # 1. Endpoint receives multipart/form-data:
-    #    - locationId (query param)
-    #    - access_token (form field)
-    #    - map_data (form field, JSON string: maps CRM fields to CSV columns)
-    #    - members_file (CSV file: existing contacts from CRM)
-    #    - new_members_file (CSV file: new leads to upload)
-    #    - customeFields (form field, JSON array: custom field names)
-
-    # 2. Parse and validate input:
-    #    - map_data_dict: dict from JSON
-    #    - map_data: NameMap object (pydantic model)
-    #    - customeFields: list of custom field names
-
-    # Parse and validate input mappings
+    
     try:
         map_data_dict = json.loads(map_data)
         map_data = NameMap(**map_data_dict)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid map_data: {str(e)}")
 
-    # Parse custom fields list
     try:
         customeFields = json.loads(customeFields)
         customeFields = [field.strip() for field in customeFields if field.strip()]
@@ -106,37 +102,11 @@ async def create_contact_from_csv(
 
     members_df = pd.read_csv(members_file.file, index_col=False)
     leads_df = pd.read_csv(new_members_file.file, index_col=False)
-
-    def normalize_phone(phone: str) -> str:
-        """
-        Normalizes phone number to XXX-XXX-XXXX format.
-        Returns an empty string if the phone number cannot be formatted this way.
-        """
-        if pd.isna(phone) or not isinstance(phone, str):
-            return ""
-
-        phone = phone.strip()
-        if not phone:
-            return ""
-
-        # Remove all non-digit characters
-        digits = re.sub(r'\D', '', phone)
-
-        # If it's an 11-digit number starting with '1', remove the '1'
-        if len(digits) == 11 and digits.startswith('1'):
-            digits = digits[1:]
-
-        # Format if it's exactly 10 digits
-        if len(digits) == 10:
-            return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
-        else:
-            return ""
-
-
-    # Build map of email/phone to contact ID for fast lookup
+    # Map emails/phones to contact IDs
     for _, row in members_df.iterrows():
         email = row.get("Email")
-        phone = normalize_phone(row.get("Phone"))
+        phone = row.get("Phone")
+        phone = re.sub(r'\D', '', str(phone)) if pd.notna(phone) else None
         contact_id = row.get("Contact Id")
 
         if pd.notna(email):
@@ -144,7 +114,6 @@ async def create_contact_from_csv(
         if pd.notna(phone):
             email_phone_contact_id_map[phone] = contact_id
 
-    # Get all available custom fields from CRM
     result = await get_custom_fields(locationId, access_token)
     if not result or "customFields" not in result:
         raise HTTPException(status_code=400, detail="Failed to fetch custom fields")
@@ -152,179 +121,114 @@ async def create_contact_from_csv(
     if not custom_fields:
         raise HTTPException(status_code=400, detail="No custom fields available")
 
-    # Build name-to-ID map for custom fields
     custom_field_id_map = {field['name'].strip(): field["id"] for field in custom_fields}
+    general_property_fields = {"Property Address": "PropertyAddress",
+                               "Property City": "PropertyCity",
+                               "Property State": "PropertyState",
+                               "Property Zip": "PropertyZip",
+                                 "Property Address Map": "PropertyAddressMap"
+                               }
 
-    general_property_fields = {
-        "Property Address": "PropertyAddress",
-        "Property City": "PropertyCity",
-        "Property State": "PropertyState",
-        "Property Zip": "PropertyZip",
-        "Property Address Map": "PropertyAddressMap"
-    }
-
-    # 7. Initialize result tracking:
     result_data = {
         'new_leads': 0,
         'existing_leads': 0,
         'error': 0,
-        'total_': 0,
-        'skipped_rows': [],  # rows skipped with reasons
-        'details': [],       # per-row status and data for frontend
+        'total_': 0
     }
 
-    # 8. Main loop: iterate through each row in leads_df
-    for idx, row in leads_df.iterrows():
+    for _, row in leads_df.iterrows():
         result_data['total_'] += 1
+
+        # Clean NaNs
         row = row.where(pd.notna(row), None)
 
         email = row.get(map_data.email)
-        phone = normalize_phone(row.get(map_data.phone))
+        phone = row.get(map_data.phone)
 
-        # Build a normalized data dict for frontend display
-        normalized_data = row.to_dict()
-        # Add mapped CRM fields for easier frontend access
-        normalized_data["email"] = row.get(map_data.email)
-        normalized_data["phone"] = row.get(map_data.phone)
-        normalized_data["first_name"] = row.get(map_data.firstName)
-        normalized_data["last_name"] = row.get(map_data.lastName)
-
-        # Check for missing email/phone
-        if not normalized_data["email"] and not normalized_data["phone"]:
-            # Track error and details
+        if not email and not phone:
             result_data["error"] += 1
-            result_data["skipped_rows"].append({
-                "reason": "Missing both email and phone",
-                "row_data": row.to_dict()
-            })
-            result_data['details'].append({
-                "row_index": idx,
-                "status": "error",
-                "reason": "Missing both email and phone",
-                "data": normalized_data
-            })
             continue
-
-        # Prepare custom field payload for CRM
+        if phone:
+            phone =re.sub(r'\D', '', str(phone))
+            if len(phone) <= 10:
+                phone = "1" + phone  # Assuming US format, prepend '1' if phone is less than 10 digits
+        # Prepare custom fields
         custom_field_values = [
             {"id": custom_field_id_map[field], "value": row.get(field, "")}
             for field in customeFields if field in custom_field_id_map
+            
         ]
-
-        # Check if contact exists (by email/phone)
-        contact_id = email_phone_contact_id_map.get(normalized_data["email"]) or email_phone_contact_id_map.get(normalized_data["phone"])
-
+        contact_id = email_phone_contact_id_map.get(email) or email_phone_contact_id_map.get(phone) or None
         if not contact_id:
-            # New lead: build custom fields from general_property_fields and custom_field_values
-            new_custom_fields = []
-            for key, attr in general_property_fields.items():
-                val = row.get(getattr(map_data, attr))
-                if pd.notna(val) and key in custom_field_id_map:
-                    new_custom_fields.append({
-                        "id": custom_field_id_map[key],
-                        "value": val
-                    })
-            new_custom_fields.extend(custom_field_values)
-
-            # Build contact payload for CRM API
-            contact_payload = {
-                "firstName": row.get(map_data.firstName),
-                "lastName": row.get(map_data.lastName),
-                "fullName": row.get(map_data.fullName) if pd.notna(row.get(map_data.fullName)) else None,
-                "email": normalized_data["email"],
-                "phone": normalized_data["phone"],
-                "country": row.get(map_data.Country),
-                "locationId": locationId,
-                "customFields": new_custom_fields,
-                "tags": [tag.strip() for tag in row.get(map_data.Tag).split(",")] if pd.notna(row.get(map_data.Tag)) else []
-            }
-
-            # Call CRM API to create contact
-            response = create_contact(contact_payload, access_token)
-
-            # Track result
-            if response.get("statusCode", 200) >= 400:
-                result_data["error"] += 1
-                result_data["skipped_rows"].append({
-                    "reason": f"API error on contact creation (status: {response.get('statusCode')})",
-                    "row_data": row.to_dict()
-                })
-                result_data['details'].append({
-                    "row_index": idx,
-                    "status": "error",
-                    "reason": f"API error on contact creation (status: {response.get('statusCode')})",
-                    "data": normalized_data
-                })
-                continue
-
-            result_data["new_leads"] += 1
-            contact_id = response.get("contactId")
-            if normalized_data["email"]:
-                email_phone_contact_id_map[normalized_data["email"]] = contact_id
-            if normalized_data["phone"]:
-                email_phone_contact_id_map[normalized_data["phone"]] = contact_id
-
-            result_data['details'].append({
-                "row_index": idx,
-                "status": "new",
-                "contact_id": contact_id,
-                "data": normalized_data
-            })
-
-        else:
-            # Existing lead: update contact with new custom fields
-            member_data = members_df[members_df["Contact Id"] == contact_id]
-            populated_fields = []
-            for i in range(2, 6):
-                col = f"Property Address {i}"
-                if col not in member_data or pd.isna(member_data[col].iloc[0]) or member_data[col].iloc[0] == "":
-                    city = row.get(getattr(map_data, "PropertyCity")) or ""
-                    state = row.get(getattr(map_data, "PropertyState")) or ""
-                    zip_code = row.get(getattr(map_data, "PropertyZip")) or ""
-                    address = f"{row.get(getattr(map_data, general_property_fields['Property Address']))}, {city}, {zip_code}, {state}"
-                    map_key = f"Property Address {i}"
-                    if pd.notna(address) and map_key in custom_field_id_map:
-                        populated_fields.append({
-                            "id": custom_field_id_map[map_key],
-                            "value": address
+            try:
+                # if not phone:
+                #     raise ValueError("Phone number is invalid or empty.")
+                new_custom_fields = []
+                for key, attr in general_property_fields.items():
+                    val = row.get(getattr(map_data, attr))
+                    if pd.notna(val) and key in custom_field_id_map:
+                        new_custom_fields.append({
+                            "id": custom_field_id_map[key],
+                            "value": val
                         })
-                    break
-            populated_fields.extend(custom_field_values)
-            update_data = {"customFields": populated_fields}
+                        
+                new_custom_fields.extend(custom_field_values)
 
-            # Call CRM API to update contact
-            response = update_contact(update_data, access_token, contact_id)
+                contact_payload = {
+                    "firstName": row.get(map_data.firstName),
+                    "lastName": row.get(map_data.lastName),
+                    "fullName": row.get(map_data.fullName) if pd.notna(row.get(map_data.fullName)) else None,
+                    "email": email,
+                    "phone": phone,
+                    "country": row.get(map_data.Country),
+                    "locationId": locationId,
+                    "customFields": new_custom_fields,
+                    "tags": [tag.strip() for tag in row.get(map_data.Tag).split(",")] if pd.notna(row.get(map_data.Tag)) else []
+                }
 
-            # Track result
-            if response.get("error"):
+
+                response = create_contact(contact_payload, access_token)
+                if response.get("statusCode", 200) >= 400:
+                    result_data["error"] += 1
+                    continue
+
+                result_data["new_leads"] += 1
+                contact_id = response.get("contactId")
+                if email:
+                    email_phone_contact_id_map[email] = contact_id
+                if phone:
+                    email_phone_contact_id_map[phone] = contact_id
+
+            except Exception as e:
                 result_data["error"] += 1
-                result_data["skipped_rows"].append({
-                    "reason": "API error on update",
-                    "row_data": row.to_dict()
-                })
-                result_data['details'].append({
-                    "row_index": idx,
-                    "status": "error",
-                    "reason": "API error on update",
-                    "data": normalized_data
-                })
-                continue
+            continue
+        # Update existing contact
+        member_data = members_df[members_df["Contact Id"] == contact_id]
+        populated_fields = []
 
-            result_data["existing_leads"] += 1
-            result_data['details'].append({
-                "row_index": idx,
-                "status": "updated",
-                "contact_id": contact_id,
-                "data": normalized_data
-            })
+        for i in range(2, 6):
+            col = f"Property Address {i}"
+            if col not in member_data or pd.isna(member_data[col].iloc[0]) or member_data[col].iloc[0] == "":
+                city = row.get(getattr(map_data, "PropertyCity")) or ""
+                state = row.get(getattr(map_data, "PropertyState")) or ""
+                zip_code = row.get(getattr(map_data, "PropertyZip")) or ""
+                address = f"{row.get(getattr(map_data, general_property_fields['Property Address']))}, {city}, {zip_code}, {state}"
 
-    # 9. Return result_data to frontend:
-    #    - new_leads: count
-    #    - existing_leads: count
-    #    - error: count
-    #    - total_: count
-    #    - skipped_rows: list of errors
-    #    - details: list of per-row status and data for display
+                map_key = f"Property Address {i}"
+                if pd.notna(address) and map_key in custom_field_id_map:
+                    populated_fields.append({
+                        "id": custom_field_id_map[map_key],
+                        "value": address
+                    })
+                break
 
-    # ✅ Final summary includes skipped rows with reasons
+        populated_fields.extend(custom_field_values)
+        update_data = {"customFields": populated_fields}
+
+        response = update_contact(update_data, access_token, contact_id)
+        if response.get("error"):
+            result_data["error"] += 1
+            continue
+        result_data["existing_leads"] += 1
+
     return result_data
