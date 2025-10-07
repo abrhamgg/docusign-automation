@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form,Request
+
+from pydantic import BaseModel,Field,HttpUrl
 import pandas as pd
 import requests
 import json
 import re
+from typing import List, Optional
+
 
 router = APIRouter(prefix='/crm')
 
@@ -23,6 +26,16 @@ class NameMap(BaseModel):
     Country: str
     fullName: str = None
     Tag: str = None
+
+class Phone(BaseModel):
+    number: str = Field(..., alias="phone")
+    type: str
+    verification_name: str
+    verification_ownership: int
+    metadata_target: str
+
+# Define the main request body
+
 
 # -----------------------------
 # Utility Functions
@@ -244,3 +257,36 @@ async def create_contact_from_csv(
         print("-" * 40)
 
     return result_data
+
+
+@router.post("/county-stream/upload-data")
+async def create_auction(request: Request):
+    body = await request.json()
+
+    # Extract phones dynamically
+    phones = []
+    i = 0
+    while f"phone_{i}" in body:
+        phone = {
+            "number": body.get(f"phone_{i}"),
+            "type": body.get(f"phone_{i}_type"),
+            "verification_name": body.get(f"phone_{i}_verification_name"),
+            "verification_ownership": body.get(f"phone_{i}_verification_ownership"),
+            "metadata_target": body.get(f"phone_{i}_metadata_target"),
+        }
+        phones.append(phone)
+        i += 1
+
+    # Extract auction info
+    auction_info_keys = ["auction_date", "owner_1_mailing_address", "apn", 
+                         "lot_size_sqft", "loan_1_balance", "assessor_url", 
+                         "notice_of_trustee_sale", "email"]
+    auction_info = {k: body[k] for k in auction_info_keys if k in body}
+
+    # Optional: convert auction_date to datetime
+    try:
+        auction_info["auction_date"] = datetime.strptime(auction_info["auction_date"], "%d/%m/%Y %H:%M:%S")
+    except ValueError:
+        return {"error": "Incorrect date format, should be DD/MM/YYYY HH:MM:SS"}
+
+    return {"auction_info": auction_info, "phones": phones}
