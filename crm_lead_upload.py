@@ -354,8 +354,8 @@ async def create_county_stream_contact(request: Request):
     # Extract phones dynamically
     phones = []
     i = 0
-    phone_number= body.get(f"phone_{i}") if body.get(f"phone_{i}") else None
-    email = body.get("email","")
+    phone_number= body.get(f"phone_{i}") if body.get(f"phone_{i}") else ""
+    email = body.get("email","") if body.get("email") else ""
     name=body.get(f"phone_{i}_verification_name") if body.get(f"phone_{i}_verification_name") else ""
     if not phone_number and not email:
         return {"error": "Either phone or email is required"}
@@ -379,14 +379,14 @@ async def create_county_stream_contact(request: Request):
         custom_field_id_map = {f['name'].strip(): f["id"] for f in custom_fields}
 
         general_property_fields = {
-            "Auction Date": auction_info.get("auction_date"),
-            "Owner 1 Mailing Address": auction_info.get("owner_1_mailing_address"),
-            "Property Address": auction_info.get("address"),
-            "Loan 1 Balance": auction_info.get("loan_1_balance"),
-            "APN": auction_info.get("apn"),
-            "Lot Size Sqft": auction_info.get("lot_size_sqft"),
-            "Assessor URL": auction_info.get("assessor_url"),
-            "Notice of Trustee Sale": auction_info.get("notice_of_trustee_sale"),
+            "Auction Date": auction_info.get("auction_date",""),
+            "Owner 1 Mailing Address": auction_info.get("owner_1_mailing_address",""),
+            "Property Address": auction_info.get("address",""),
+            "Loan 1 Balance": auction_info.get("loan_1_balance",""),
+            "APN": auction_info.get("apn",""),
+            "Lot Size Sqft": auction_info.get("lot_size_sqft",""),
+            "Assessor URL": auction_info.get("assessor_url",""),
+            "Notice of Trustee Sale": auction_info.get("notice_of_trustee_sale",""),
 
         }
         i = 0
