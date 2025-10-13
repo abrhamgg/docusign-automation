@@ -347,7 +347,7 @@ async def create_county_stream_contact(request: Request):
         raise HTTPException(status_code=400, detail=f"Invalid JSON in request body: {str(e)}")
 
     # Extract location_id
-    location_id = body.get("location_id")
+    location_id = "DW2nJUxi905AXIkYxfS6"
     if not location_id:
         return {"error": "location_id is required"}
 
