@@ -1,9 +1,20 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form,Request
+
+from pydantic import BaseModel,Field,HttpUrl
 import pandas as pd
 import requests
 import json
 import re
+from typing import List, Optional
+import os
+import requests
+from services.token_service import get_valid_token
+from routers.update_phones import update_phones_in_ghl
+from fastapi import status, HTTPException
+import logging
+logger = logging.getLogger(__name__)
+import json
+AUTH_URL = os.getenv("AUTH_URL")
 
 router = APIRouter(prefix='/crm')
 
@@ -24,9 +35,72 @@ class NameMap(BaseModel):
     fullName: str = None
     Tag: str = None
 
+class Phone(BaseModel):
+    number: str = Field(..., alias="phone")
+    type: str
+    verification_name: str
+    verification_ownership: int
+    metadata_target: str
+
+# Define the main request body
+
+
 # -----------------------------
 # Utility Functions
 # -----------------------------
+
+
+def extract_message_from_error(error):
+    # If error is a string and contains JSON, extract the JSON part
+    if isinstance(error, str):
+        import re
+        match = re.search(r'({.*})', error)
+        if match:
+            try:
+                error_json = json.loads(match.group(1))
+                return error_json.get("message", error)
+            except Exception:
+                pass
+        # If no JSON, return the string itself
+        return error
+    # If error is a dict
+    if isinstance(error, dict):
+        return error.get("message", str(error))
+    return str(error)
+
+def check_duplicates(token: str, location_id: str, email: str = None, phone: str = None) -> dict | None:
+    if not token:
+        raise HTTPException(status_code=400, detail="No access token provided.")
+
+    url = "https://services.leadconnectorhq.com/contacts/search/duplicate"
+    params = {
+        "locationId": location_id,
+        "email": email,
+        "number": phone
+    }
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Version": "2021-07-28"
+    }
+
+    try:
+        response = requests.get(url, params=params, headers=headers)
+        if response.status_code == 200:
+            return response.json().get("contact")
+        elif response.status_code == 404:
+            # 404 means no duplicate found — return None
+            return None
+        else:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"GHL Check Duplicate Error: {response.text}"
+            )
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error checking duplicates: {str(e)}"
+        )
+    
 def create_contact(data, access_token):
     url = "https://services.leadconnectorhq.com/contacts"
     headers = {"Authorization": f"Bearer {access_token}", "Version": "2021-07-28"}
@@ -37,6 +111,26 @@ def update_contact(data, access_token, contact_id):
     headers = {"Authorization": f"Bearer {access_token}", "Version": "2021-07-28"}
     return requests.put(url, headers=headers, json=data).json()
 
+def update_contacts(token: str, contact_id: str, contact_data: dict) -> tuple[dict | None, str | None]:
+    if not token:
+        raise HTTPException(status_code=400, detail="No access token provided.")
+    
+    url = f"https://services.leadconnectorhq.com/contacts/{contact_id}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Version": "2021-07-28",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.put(url, json=contact_data, headers=headers)
+        if response.status_code == 200:
+            return response.json(), None
+        else:
+            error_msg = f"Update failed: {response.status_code} - {response.text}"
+            raise HTTPException(status_code=response.status_code, detail=error_msg)
+    except requests.RequestException as e:
+        raise HTTPException(status_code=400, detail=f"Error updating contact: {str(e)}")
 async def get_custom_fields(location_id: str, access_token: str):
     if not access_token:
         raise HTTPException(status_code=400, detail="No access token provided.")
@@ -59,7 +153,6 @@ def normalize_phone(phone: str) -> str:
     if len(digits) == 10:
         return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
     return ""
-
 # -----------------------------
 # Main Endpoint
 # -----------------------------
@@ -244,3 +337,133 @@ async def create_contact_from_csv(
         print("-" * 40)
 
     return result_data
+
+
+@router.post("/county-stream/upload-data")
+async def create_county_stream_contact(request: Request):
+    try:
+        body = await request.json()
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON in request body: {str(e)}")
+
+    # Extract location_id
+    location_id = "DW2nJUxi905AXIkYxfS6"
+    if not location_id:
+        return {"error": "location_id is required"}
+
+    # Extract phones dynamically
+    phones = []
+    i = 0
+    phone_number= body.get(f"phone_{i}") if body.get(f"phone_{i}") else ""
+    email = body.get("email","") if body.get("email") else ""
+    name=body.get(f"phone_{i}_verification_name") if body.get(f"phone_{i}_verification_name") else ""
+    if not phone_number and not email:
+        return {"error": "Either phone or email is required"}
+
+    # Extract auction info
+    auction_info_keys = [
+        "auction_date", "owner_1_mailing_address", "apn", 
+        "lot_size_sqft", "loan_1_balance", "assessor_url", 
+        "notice_of_trustee_sale", "email","address","city","state","zip","property_address_map"
+    ]
+    auction_info = {k: body[k] for k in auction_info_keys if k in body}
+
+    # Optional: convert auction_date to datetime
+    try:
+        token = get_valid_token(location_id)
+        is_duplicate=  check_duplicates(token,location_id,email,phone_number)
+        print(is_duplicate)
+    
+        result = await get_custom_fields(location_id, token)
+        custom_fields = result.get("customFields", [])
+        custom_field_id_map = {f['name'].strip(): f["id"] for f in custom_fields}
+
+        general_property_fields = {
+            "Auction Date": auction_info.get("auction_date",""),
+            "Owner 1 Mailing Address": auction_info.get("owner_1_mailing_address",""),
+            "Property Address": auction_info.get("address",""),
+            "Loan 1 Balance": auction_info.get("loan_1_balance",""),
+            "APN": auction_info.get("apn",""),
+            "Lot Size Sqft": auction_info.get("lot_size_sqft",""),
+            "Assessor URL": auction_info.get("assessor_url",""),
+            "Notice of Trustee Sale": auction_info.get("notice_of_trustee_sale",""),
+
+        }
+        i = 0
+        phone_lists=[]
+        phone_data={}
+        while f"phone_{i}" in body:
+            phone = body.get(f"phone_{i}", "").strip()
+            phone_type = body.get(f"phone_{i}_type", "Mobile").strip()
+
+            if phone:  # only add if phone exists
+                phone_lists.append({
+                    "phone": phone,
+                    "type": phone_type
+                })
+            
+            i += 1
+        print("phone lists",phone_lists)
+        new_custom_fields = []
+        created_fields = []
+        for key, val in general_property_fields.items():
+            if key in custom_field_id_map and val is not None:
+
+                new_custom_fields.append({"id": custom_field_id_map[key], "value": val})    
+
+        contact_payload = {
+            "firstName": name.split(" ")[0] if name and " " in name else name,
+            "lastName": name.split(" ")[-1] if name and " " in name else "",
+            "fullName": name,
+            "email": email,
+            "phone": phone_number,
+            "locationId": location_id,
+            "customFields": new_custom_fields,
+        }
+        print("contact payload",contact_payload)
+        if is_duplicate:
+            contact_payload.pop("locationId", None)
+            response,err= update_contacts( token, is_duplicate['id'],contact_payload)
+            contact_id=is_duplicate['id']
+            if not response:
+                return {"error":extract_message_from_error(err)}
+        else:
+            response = create_contact(contact_payload, token)
+        # print("Response",response)
+            contact_id=response.get("contact").get("id")
+        # contact_id="1234"
+        result = send_update_phones(phone_lists, location_id=location_id, contact_id=contact_id)
+        print("result", result)
+        if "error" in result.get("ghl_response", {}):
+            return {"error": result.get("ghl_response", {})["error"]}
+        return {"success": True, "location_id": location_id, "status": result["status"]}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}
+def send_update_phones(phone_lists: list, location_id: str, contact_id: str):
+    """
+    Takes phone list data, location_id, and contact_id,
+    then sends a request to the /update-phones endpoint.
+    """
+    # Validate inputs
+    try:
+        if not phone_lists:
+            return {"error": "No phone data provided"}
+        if not contact_id or not location_id:
+            return {"error": "Missing contact_id or location_id"}
+
+        # Combine all phone data into a single payload
+        payload = {}
+
+        # Merge all phone_data dicts into the payload
+        print("phone_lists",phone_lists)
+        
+
+        print("📦 Payload to send:", payload)
+        print("phonelist",phone_lists)
+        
+        # Send POST request to your FastAPI endpoint
+        return update_phones_in_ghl(contact_id,location_id,phone_lists)
+    except Exception as e:
+        return {"error": str(e)}

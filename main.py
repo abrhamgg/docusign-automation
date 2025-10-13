@@ -15,11 +15,12 @@ from craimer_countystream import router as craimer_router
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, update_phones
 from app.api.v1.endpoints import docusign
-
+from crm_lead_upload import router as crm_leads
 app=FastAPI()
 
 app.include_router(router)
 app.include_router(craimer_router)
+app.include_router(crm_leads)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(update_phones.router, prefix="/api")
 app.include_router(docusign.router, prefix="/docusign", tags=["DocuSign"])

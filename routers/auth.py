@@ -35,7 +35,8 @@ def connect():
     base_url = "https://marketplace.gohighlevel.com/oauth/chooselocation"
     scope = [
         "contacts.readonly",
-        "contacts.write"
+        "contacts.write",
+        "locations/customFields.readonly"
     ]
     query = {
         "client_id": CLIENT_ID,
@@ -69,7 +70,7 @@ def redirect_handler(code: str):
     refresh_token = token_json["refresh_token"]
     expires_in = token_json["expires_in"]
     location_id = token_json["locationId"]
-
+    
     # Fetch location details
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -101,14 +102,18 @@ def redirect_handler(code: str):
         # 🟡 Update token + refresh + expires
         print(f"[INFO] Location {location_id} already exists. Updating tokens.")
         table.update_item(
-            Key={"location_id": location_id},
-            UpdateExpression="SET token = :t, refresh = :r, expires_at = :e",
-            ExpressionAttributeValues={
-                ":t": access_token,
-                ":r": refresh_token,
-                ":e": expires_at
-            }
-        )
+        Key={"location_id": location_id},
+        UpdateExpression="SET #t = :t, #r = :r, expires_at = :e",
+        ExpressionAttributeNames={
+            "#t": "token",
+            "#r": "refresh"
+        },
+        ExpressionAttributeValues={
+            ":t": access_token,
+            ":r": refresh_token,
+            ":e": expires_at
+        }
+    )
     else:
         # 🟢 New user — insert full item
         print(f"[INFO] New location connected: {location_id}")
