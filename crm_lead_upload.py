@@ -364,7 +364,7 @@ async def create_county_stream_contact(request: Request):
     auction_info_keys = [
         "auction_date", "owner_1_mailing_address", "apn", 
         "lot_size_sqft", "loan_1_balance", "assessor_url", 
-        "notice_of_trustee_sale", "email","address","city","state","zip","property_address_map"
+        "notice_of_trustee_sale", "email","city","state","zip","property_address"
     ]
     auction_info = {k: body[k] for k in auction_info_keys if k in body}
 
@@ -372,21 +372,24 @@ async def create_county_stream_contact(request: Request):
     try:
         token = get_valid_token(location_id)
         is_duplicate=  check_duplicates(token,location_id,email,phone_number)
-        print(is_duplicate)
+        print("DUPLICATE DATA",is_duplicate)
     
         result = await get_custom_fields(location_id, token)
         custom_fields = result.get("customFields", [])
         custom_field_id_map = {f['name'].strip(): f["id"] for f in custom_fields}
-
+        print("customfieldsid",custom_field_id_map)
         general_property_fields = {
             "Auction Date": auction_info.get("auction_date",""),
             "Owner 1 Mailing Address": auction_info.get("owner_1_mailing_address",""),
-            "Property Address": auction_info.get("address",""),
             "Loan 1 Balance": auction_info.get("loan_1_balance",""),
             "APN": auction_info.get("apn",""),
             "Lot Size Sqft": auction_info.get("lot_size_sqft",""),
             "Assessor URL": auction_info.get("assessor_url",""),
             "Notice of Trustee Sale": auction_info.get("notice_of_trustee_sale",""),
+            "Property Address": auction_info.get("property_address", ""),
+            "Property City": auction_info.get("city", ""),
+            "Property State": auction_info.get("state", ""),
+            "Property Zip": auction_info.get("zip", "")
 
         }
         i = 0
