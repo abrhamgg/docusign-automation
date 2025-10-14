@@ -434,9 +434,9 @@ async def create_county_stream_contact(request: Request):
         # contact_id="1234"
         result = send_update_phones(phone_lists, location_id=location_id, contact_id=contact_id)
         print("result", result)
-        if "error" in result.get("ghl_response", {}):
+        if result is not None and "error" in result.get("ghl_response", {}):
             return {"error": result.get("ghl_response", {})["error"]}
-        return {"success": True, "location_id": location_id, "status": result["status"]}
+        return {"success": True, "location_id": location_id, "status": result.get("status", "unknown")}
     except Exception as e:
         import traceback
         traceback.print_exc()
