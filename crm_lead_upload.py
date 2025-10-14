@@ -378,7 +378,7 @@ async def create_county_stream_contact(request: Request):
         custom_fields = result.get("customFields", [])
         custom_field_id_map = {f['name'].strip(): f["id"] for f in custom_fields}
         print("customfieldsid",custom_field_id_map)
-        general_property_fields = {
+        general_property_fields_raw = {
             "Auction Date": auction_info.get("auction_date",""),
             "Owner 1 Mailing Address": auction_info.get("owner_1_mailing_address",""),
             "Loan 1 Balance": auction_info.get("loan_1_balance",""),
@@ -391,6 +391,11 @@ async def create_county_stream_contact(request: Request):
             "Property State": auction_info.get("state", ""),
             "Property Zip": auction_info.get("zip", "")
 
+        }
+        general_property_fields = {
+            key: value
+            for key, value in general_property_fields_raw.items()
+            if value not in (None, "", "null")
         }
         i = 0
         phone_lists=[]
