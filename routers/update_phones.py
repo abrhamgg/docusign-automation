@@ -27,7 +27,6 @@ def update_phones_in_ghl(contact_id: str, location_id: str, phones: list):
 
         # 🔐 Get token (replace later with your token fetch logic)
         token = get_valid_token(location_id)
-        return
        # 📥 Fetch existing contact data
         existing_resp = requests.get(
             f"https://services.leadconnectorhq.com/contacts/{contact_id}",
