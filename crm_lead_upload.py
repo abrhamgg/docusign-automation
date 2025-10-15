@@ -110,10 +110,76 @@ def update_contact(data, access_token, contact_id):
     url = f"https://services.leadconnectorhq.com/contacts/{contact_id}"
     headers = {"Authorization": f"Bearer {access_token}", "Version": "2021-07-28"}
     return requests.put(url, headers=headers, json=data).json()
-
-def update_contacts(token: str, contact_id: str, contact_data: dict) -> tuple[dict | None, str | None]:
+def get_label_from_type(phone_type: str) -> str:
+    if phone_type is None:
+        return "Mobile"
+    pt = phone_type.lower().strip()
+    if pt in ["mobile", "wireless", "cell"]:
+        return "Mobile"
+    elif pt == "home":
+        return "Home"
+    elif pt == "work":
+        return "Work"
+    elif pt in ["landline", "voip"]:
+        return "Landline"
+    return "Mobile"  # fallback default
+def update_contacts(token: str, contact_id: str, contact_data: dict,phone_lists:list=[]) -> tuple[dict | None, str | None]:
     if not token:
         raise HTTPException(status_code=400, detail="No access token provided.")
+    phone = contact_data.get("phone")
+    print("phones",phone)
+    if not phone or phone.strip().lower() == "null":
+        pass
+    else:
+        phone_lists.append({"phone":contact_data.get("phone"),"type":"wireless"})
+       # 📥 Fetch existing contact data
+        existing_resp = requests.get(
+            f"https://services.leadconnectorhq.com/contacts/{contact_id}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Version": "2021-07-28"
+            }
+        )
+        existing = existing_resp.json()
+
+        existing_phones = []
+        existing_contact_data = existing.get("contact", {})
+        old_phone=[]
+        if existing_contact_data.get("phone"):
+            old_phone.append({
+                "phone": existing_contact_data["phone"],
+                "type": existing_contact_data.get("phoneLabel", "Mobile")
+            })
+            existing_phones.append({
+                "phone": existing_contact_data["phone"],
+                "type": existing_contact_data.get("phoneLabel", "Mobile")
+            })
+        print("existing_phones", existing_phones)
+        print("existing.get",existing_contact_data.get("additionalPhones", []))
+        # Include additionalPhones
+        for p in existing_contact_data.get("additionalPhones", []):
+            if "phone" in p:
+                existing_phones.append({
+                    "phone": p["phone"],
+                    "type": p.get("phoneLabel", "Mobile")
+                }) 
+        seen = set()
+        all_phones = existing_phones + phone_lists
+        merged_phones = []
+        for p in all_phones:
+            number = p["phone"].strip()
+            norm = number.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+            if norm and norm not in seen:
+                seen.add(norm)
+                merged_phones.append({
+                    "phone": number,
+                    "phoneLabel": get_label_from_type(p.get("type", "Mobile"))
+                })
+        if merged_phones:
+            contact_data["phone"]=old_phone[0]["phone"] if old_phone else merged_phones[0]["phone"]
+            contact_data["phoneLabel"]=old_phone[0]["type"] if old_phone else merged_phones[0]["phoneLabel"]
+            contact_data["additionalPhones"]= merged_phones if old_phone else merged_phones[1:]
+
     
     url = f"https://services.leadconnectorhq.com/contacts/{contact_id}"
     headers = {
@@ -122,8 +188,19 @@ def update_contacts(token: str, contact_id: str, contact_data: dict) -> tuple[di
         "Content-Type": "application/json"
     }
 
+    # Remove read-only fields that cause 422 errors
+    read_only_fields = {
+        'id', 'dateAdded', 'locationId', 'firstNameLowerCase', 
+        'fullNameLowerCase', 'lastNameLowerCase', 'emailLowerCase', 
+        'createdBy', 'dateUpdated'
+    }
+    
+    # Create clean payload without read-only fields
+    clean_data = {k: v for k, v in contact_data.items() if k not in read_only_fields}
+    
     try:
-        response = requests.put(url, json=contact_data, headers=headers)
+        print("CONTACT DATA", clean_data)
+        response = requests.put(url, json=clean_data, headers=headers)
         if response.status_code == 200:
             return response.json(), None
         else:
@@ -431,19 +508,16 @@ async def create_county_stream_contact(request: Request):
         print("contact payload",contact_payload)
         if is_duplicate:
             contact_payload.pop("locationId", None)
-            response,err= update_contacts( token, is_duplicate['id'],contact_payload)
+            response,err= update_contacts( token, is_duplicate['id'],contact_payload,phone_lists)
             contact_id=is_duplicate['id']
             if not response:
                 return {"error":extract_message_from_error(err)}
         else:
             response = create_contact(contact_payload, token)
-        # print("Response",response)
             contact_id=response.get("contact").get("id")
-        # contact_id="1234"
-        result = send_update_phones(phone_lists, location_id=location_id, contact_id=contact_id)
-        print("result", result)
-        if result is not None and "error" in result.get("ghl_response", {}):
-            return {"error": result.get("ghl_response", {})["error"]}
+            result = send_update_phones(phone_lists, location_id=location_id, contact_id=contact_id)
+            if result is not None and "error" in result.get("ghl_response", {}):
+                return {"error": result.get("ghl_response", {})["error"]}
         return {"success": True, "location_id": location_id, "status": result.get("status", "unknown")}
     except Exception as e:
         import traceback
