@@ -433,7 +433,7 @@ async def create_county_stream_contact(request: Request):
     i = 0
     phone_number= body.get(f"phone_{i}") if body.get(f"phone_{i}") else ""
     email = body.get("email","") if body.get("email") else ""
-    name=body.get(f"phone_{i}_verification_name") if body.get(f"phone_{i}_verification_name") else ""
+    name=body.get("owner_name") if body.get("owner_name") else ""
     if not phone_number and not email:
         return {"error": "Either phone or email is required"}
 
@@ -441,7 +441,8 @@ async def create_county_stream_contact(request: Request):
     auction_info_keys = [
         "auction_date", "owner_1_mailing_address", "apn", 
         "lot_size_sqft", "loan_1_balance", "assessor_url", 
-        "notice_of_trustee_sale", "email","city","state","zip","property_address"
+        "notice_of_trustee_sale", "email","city","state","zip","property_address",
+        "zillow_url","redfin_url","realtor_url","zillow_amount","redfin_amount","realtor_amount"
     ]
     auction_info = {k: body[k] for k in auction_info_keys if k in body}
 
@@ -466,7 +467,13 @@ async def create_county_stream_contact(request: Request):
             "Property Address": auction_info.get("property_address", ""),
             "Property City": auction_info.get("city", ""),
             "Property State": auction_info.get("state", ""),
-            "Property Zip": auction_info.get("zip", "")
+            "Property Zip": auction_info.get("zip", ""),
+            "zillow_url":auction_info.get("zillow_url", ""),
+            "redfin_url":auction_info.get("redfin_url", ""),
+            "realtor_url":auction_info.get("realtor_url", ""),
+            "zillow_amount":auction_info.get("zillow_amount", ""),
+            "redfin_amount":auction_info.get("redfin_amount", ""),
+            "realtor_amount":auction_info.get("realtor_amount", "")
 
         }
         general_property_fields = {
