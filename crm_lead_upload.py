@@ -500,11 +500,12 @@ async def create_county_stream_contact(request: Request):
             "firstName": name.split(" ")[0] if name and " " in name else name,
             "lastName": name.split(" ")[-1] if name and " " in name else "",
             "fullName": name,
-            "email": email,
             "phone": phone_number,
             "locationId": location_id,
             "customFields": new_custom_fields,
         }
+        if email:
+            contact_payload["email"] = email 
         print("contact payload",contact_payload)
         if is_duplicate:
             contact_payload.pop("locationId", None)
@@ -514,6 +515,7 @@ async def create_county_stream_contact(request: Request):
                 return {"error":extract_message_from_error(err)}
         else:
             response = create_contact(contact_payload, token)
+            print("response",response)
             contact_id=response.get("contact").get("id")
             result = send_update_phones(phone_lists, location_id=location_id, contact_id=contact_id)
             if result is not None and "error" in result.get("ghl_response", {}):
