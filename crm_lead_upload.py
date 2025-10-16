@@ -507,12 +507,14 @@ async def create_county_stream_contact(request: Request):
             "firstName": name.split(" ")[0] if name and " " in name else name,
             "lastName": name.split(" ")[-1] if name and " " in name else "",
             "fullName": name,
-            "phone": phone_number,
             "locationId": location_id,
             "customFields": new_custom_fields,
+            "tags": ["County Stream"]
         }
         if email:
             contact_payload["email"] = email 
+        if phone_number:
+            contact_payload["phone"] = phone_number
         print("contact payload",contact_payload)
         if is_duplicate:
             contact_payload.pop("locationId", None)
