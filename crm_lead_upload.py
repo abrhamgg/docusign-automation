@@ -442,7 +442,7 @@ async def create_county_stream_contact(request: Request):
         "auction_date", "owner_1_mailing_address", "apn", 
         "lot_size_sqft", "loan_1_balance", "assessor_url", 
         "notice_of_trustee_sale", "email","city","state","zip","property_address",
-        "zillow_url","redfin_url","realtor_url","zillow_amount","redfin_amount","realtor_amount"
+        "zillow_url","redfin_url","realtor_url","zillow_amount","redfin_amount","realtor_amount","county_stream_file_id"
     ]
     auction_info = {k: body[k] for k in auction_info_keys if k in body}
 
@@ -473,7 +473,8 @@ async def create_county_stream_contact(request: Request):
             "realtor_url":auction_info.get("realtor_url", ""),
             "zillow_amount":auction_info.get("zillow_amount", ""),
             "redfin_amount":auction_info.get("redfin_amount", ""),
-            "realtor_amount":auction_info.get("realtor_amount", "")
+            "realtor_amount":auction_info.get("realtor_amount", ""),
+            "County Stream File ID":auction_info.get("county_stream_file_id", "")
 
         }
         general_property_fields = {
