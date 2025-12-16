@@ -118,7 +118,7 @@ class DocuSignAPI:
             "Florida": ["AMZ Title", "8381 N. Gunn Hwy Tampa,FL 33626", "813-200-6130", "neworders@amztitle.com"],
             "Louisiana": ["True Title", "110 Veterans Blvd. Suite 525, Metairie, LA 70005", "(504) 309-1030", "rlarousse@truetitle.net"],
             "Midwest": ["Empora Title", "145 E Rich St, Floor 4 Columbus, OH 43215", "(614) 660-5503", "info@emporatitle.com"],
-            "Arizona": ["1st Option Title", "7975 N. Hayden Road, Suite A-200 Scottsdale, AZ 85258", "(480)-795-3491", "carrie@1stoptiontitle.com"],
+            "Arizona": ["Closed Title Reinvented", "699 North Federal Highway, Suite 350, Fort Lauderdale, Florida 33004", "(480)-615-3661", "ctucker@closedtitle.com"],
             "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
             "Georgia": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ],
             "Kane Title":["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"],
@@ -126,7 +126,7 @@ class DocuSignAPI:
             "FL": ["AMZ Title", "8381 N. Gunn Hwy Tampa,FL 33626", "813-200-6130", "neworders@amztitle.com"],
             "LA": ["True Title", "110 Veterans Blvd. Suite 525, Metairie, LA 70005", "(504) 309-1030", "rlarousse@truetitle.net"],
             "MW": ["Empora Title", "145 E Rich St, Floor 4 Columbus, OH 43215", "(614) 660-5503", "info@emporatitle.com"],
-            "AZ": ["1st Option Title", "7975 N. Hayden Road, Suite A-200 Scottsdale, AZ 85258", "(480)-795-3491", "carrie@1stoptiontitle.com"],
+            "AZ": ["Closed Title Reinvented", "699 North Federal Highway, Suite 350, Fort Lauderdale, Florida 33004", "(480)-615-3661", "ctucker@closedtitle.com"],
             "TX": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
             "GA": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ],
             "KT": ["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"]
