@@ -406,6 +406,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
         ]
     }
     response = requests.post(f"{baseURL}/{accountID}/envelopes",headers=headers,json=envelope)
+    print("envelope response",response.json())
     return response.json()
 
 
