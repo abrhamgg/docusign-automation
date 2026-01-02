@@ -14,6 +14,13 @@ class Settings:
     # Fernet Encryption Key
     ENC_KEY: str = os.getenv("ENC_KEY")
 
+    # GHL / LeadConnector settings (used by dueIn webhook integration)
+    GHL_API_TOKEN: str = os.getenv("GHL_API_TOKEN") or os.getenv("GHL_ACCESS_TOKEN")
+    GHL_ACCESS_TOKEN: str = os.getenv("GHL_ACCESS_TOKEN")
+    GHL_BASE_URL: str = os.getenv("GHL_BASE_URL", "https://services.leadconnectorhq.com")
+    GHL_API_VERSION: str = os.getenv("GHL_API_VERSION", "2021-07-28")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
     # DocuSign Configuration
     DOCUSIGN_INTEGRATION_KEY: str = os.getenv("DOCUSIGN_INTEGRATION_KEY")
     DOCUSIGN_USER_ID: str = os.getenv("DOCUSIGN_USER_ID")
