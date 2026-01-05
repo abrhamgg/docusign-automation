@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, update_phones
 from app.api.v1.endpoints import docusign
 from crm_lead_upload import router as crm_leads
+from app.duein.routes import webhook as duein_webhook
 app=FastAPI()
 
 app.include_router(router)
@@ -24,6 +25,7 @@ app.include_router(crm_leads)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(update_phones.router, prefix="/api")
 app.include_router(docusign.router, prefix="/docusign", tags=["DocuSign"])
+app.include_router(duein_webhook.router, prefix="/duein", tags=["dueIn"])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
