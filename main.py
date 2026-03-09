@@ -215,7 +215,9 @@ def sendEnvelope(envelope_data:EnvelopeData):
         "Arizona": ["Closed Title Reinvented", " ", "(480)-615-3661", "ctucker@closedtitle.com"],
         "Texas": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
         "Georgia": ["Parkway Law Group", "1755 North Brown Road Suite 150, Lawrenceville, GA 30043", "(678) 407-5555","brionna@parkwaytitle.com" ],
-        "Kane Title":["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"]
+        "Kane Title":["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"],
+        "Closed Title Kendall":["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
+        "Closed Title Adrienne":["Closed Title Reinvented", " ", "(480)-615-3661", "ctucker@closedtitle.com"],
     }
 
     access_token =generateAccessToken()
@@ -395,7 +397,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
                                     "roleName": "Signer 1", 
                                     "recipientId": "f5d6f049-efc9-4fa1-9611-618063ed473d",
                                     "name": "Gordon Sran",
-                                    "email": "gordon@palmcapitalventures.com",
+                                    "email": "gordon@palmcapitalinvestments.com",
                                     "tabs":tabs
                                 }
                             ]
