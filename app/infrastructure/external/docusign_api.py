@@ -124,6 +124,10 @@ class DocuSignAPI:
             "Kane Title":["Kane Title, Atten: Brittany", "5301 Village Creek Drive, Suite A, Plano, Texas 75093","(972) 325-1505","orders@kanetitlellc.com"],
             "Closed Title Kendall":["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
             "Closed Title Adrienne":["Closed Title Reinvented", " ", "(480)-615-3661", "ctucker@closedtitle.com"],
+            "Hudly Title (Tx)": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
+            "Closed Title (Generic)":["Closed Title Reinvented", " ", "(480)-615-3661", "ctucker@closedtitle.com"],
+            "Closed Title (Tx)":["Kendall Rivera","440 E Central Texas Expy #105, Harker Heights, TX 76548","(865) 500-3703","krivera@closedtitle.com"],
+
             # abrreviated state names
             "FL": ["AMZ Title", "8381 N. Gunn Hwy Tampa,FL 33626", "813-200-6130", "neworders@amztitle.com"],
             "LA": ["True Title", "110 Veterans Blvd. Suite 525, Metairie, LA 70005", "(504) 309-1030", "rlarousse@truetitle.net"],
