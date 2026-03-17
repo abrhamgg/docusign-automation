@@ -221,7 +221,7 @@ def sendEnvelope(envelope_data:EnvelopeData):
 
 
         "Hudly Title (Tx)": ["Hudly Title", "801 Barton Springs Road Austin, TX 7870", "(512) 400-4210", "escrow@hudlytitle.com"],
-        "Closed Title (Generic)":["Closed Title Reinvented", " ", "(480)-615-3661", "ctucker@closedtitle.com"],
+        "Closed Title (Generic)":["Closed Title", " ", "(910)-222-3931", "aprince@closedtitle.com"],
         "Closed Title (Tx)":["Kendall Rivera","440 E Central Texas Expy #105, Harker Heights, TX 76548","(865) 500-3703","krivera@closedtitle.com"],
 
 
